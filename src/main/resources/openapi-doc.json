@@ -17,6 +17,117 @@
         }
     ],
     "paths": {
+        "/api/v1/vote": {
+            "get": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "getAllVotes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/VoteDetailDto"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "createNewVote",
+                "parameters": [
+                    {
+                        "name": "req",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/components/schemas/VoteCreationDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/vote/{voteId}/option": {
+            "post": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "createVoteOption",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "req",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/components/schemas/VoteOptionDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/vote/{voteId}/option/airbnb": {
+            "post": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "createVoteOption_1",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "req",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/components/schemas/AirbnbVoteOptionDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {}
+                    }
+                }
+            }
+        },
         "/api/v1/auth/register": {
             "post": {
                 "tags": [
@@ -196,6 +307,133 @@
     },
     "components": {
         "schemas": {
+            "VoteCreationDto": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "voteType": {
+                        "type": "string",
+                        "enum": [
+                            "RANKING",
+                            "SIMPLE"
+                        ]
+                    },
+                    "allowMultiVote": {
+                        "type": "boolean"
+                    },
+                    "allowAnonymousVote": {
+                        "type": "boolean"
+                    },
+                    "done": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "allowAnonymousVote",
+                    "allowMultiVote",
+                    "done",
+                    "title",
+                    "voteType"
+                ]
+            },
+            "VoteOptionDto": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "preDefinedPosition": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "required": [
+                    "label"
+                ]
+            },
+            "AirbnbVoteOptionData": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "totalPrice": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "flightNeeded": {
+                        "type": "boolean"
+                    },
+                    "airbnbPrice": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "airbnbLink": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "airbnbLink",
+                    "airbnbPrice",
+                    "country",
+                    "description",
+                    "flightNeeded",
+                    "totalPrice"
+                ]
+            },
+            "AirbnbVoteOptionDto": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "totalPrice": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "flightNeeded": {
+                        "type": "boolean"
+                    },
+                    "airbnbPrice": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "airbnbLink": {
+                        "type": "string"
+                    },
+                    "predefinedPosition": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "airbnbData": {
+                        "$ref": "#/components/schemas/AirbnbVoteOptionData"
+                    }
+                },
+                "required": [
+                    "airbnbData",
+                    "airbnbLink",
+                    "airbnbPrice",
+                    "country",
+                    "description",
+                    "flightNeeded",
+                    "label",
+                    "totalPrice"
+                ]
+            },
             "UserCreateRequestDto": {
                 "type": "object",
                 "properties": {
@@ -239,6 +477,52 @@
                 },
                 "required": [
                     "password"
+                ]
+            },
+            "VoteDetailDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "voteType": {
+                        "type": "string",
+                        "enum": [
+                            "RANKING",
+                            "SIMPLE"
+                        ]
+                    },
+                    "allowMultiVote": {
+                        "type": "boolean"
+                    },
+                    "allowAnonymousVote": {
+                        "type": "boolean"
+                    },
+                    "done": {
+                        "type": "boolean"
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VoteOptionDto"
+                        }
+                    }
+                },
+                "required": [
+                    "allowAnonymousVote",
+                    "allowMultiVote",
+                    "done",
+                    "id",
+                    "options",
+                    "title",
+                    "voteType"
                 ]
             },
             "UserDto": {

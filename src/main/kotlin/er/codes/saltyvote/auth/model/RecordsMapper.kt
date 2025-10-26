@@ -11,4 +11,3 @@ fun UsersRecord.toEntity() =
         admin = this.admin!!,
         enabled = this.enabled!!,
     )
-

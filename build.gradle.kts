@@ -37,7 +37,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVer}")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVer")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
@@ -45,11 +45,11 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("io.github.oshai:kotlin-logging-jvm:${kotlinLoggingVer}")
-    implementation("io.jsonwebtoken:jjwt-root:${jwtVer}")
-    implementation("io.jsonwebtoken:jjwt-api:${jwtVer}")
-    implementation("io.jsonwebtoken:jjwt-impl:${jwtVer}")
-    implementation("io.jsonwebtoken:jjwt-jackson:${jwtVer}")
+    implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingVer")
+    implementation("io.jsonwebtoken:jjwt-root:$jwtVer")
+    implementation("io.jsonwebtoken:jjwt-api:$jwtVer")
+    implementation("io.jsonwebtoken:jjwt-impl:$jwtVer")
+    implementation("io.jsonwebtoken:jjwt-jackson:$jwtVer")
 
     implementation("org.jooq:jooq:$jooqVer")
     implementation("org.jooq:jooq-kotlin:$jooqVer")
@@ -132,6 +132,10 @@ jooq {
             target {
                 packageName = "er.codes.saltyvote.jooq"
                 directory = "$projectDir/src/main/kotlin/"
+            }
+            generate {
+                daos = true
+                springDao = true
             }
         }
     }

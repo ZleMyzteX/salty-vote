@@ -58,4 +58,18 @@ open class HistoryRecord() : UpdatableRecordImpl<HistoryRecord>(History.HISTORY)
         this.eventData = eventData
         resetTouchedOnNotNull()
     }
+
+    /**
+     * Create a detached, initialised HistoryRecord
+     */
+    constructor(value: er.codes.saltyvote.jooq.tables.pojos.History?): this() {
+        if (value != null) {
+            this.id = value.id
+            this.createdAt = value.createdAt
+            this.actionType = value.actionType
+            this.userId = value.userId
+            this.eventData = value.eventData
+            resetTouchedOnNotNull()
+        }
+    }
 }

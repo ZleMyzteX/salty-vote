@@ -7,8 +7,16 @@ package er.codes.saltyvote.jooq.keys
 
 import er.codes.saltyvote.jooq.tables.History
 import er.codes.saltyvote.jooq.tables.Users
+import er.codes.saltyvote.jooq.tables.VoteOptions
+import er.codes.saltyvote.jooq.tables.VoteSubmissionEntries
+import er.codes.saltyvote.jooq.tables.VoteSubmissions
+import er.codes.saltyvote.jooq.tables.Votes
 import er.codes.saltyvote.jooq.tables.records.HistoryRecord
 import er.codes.saltyvote.jooq.tables.records.UsersRecord
+import er.codes.saltyvote.jooq.tables.records.VoteOptionsRecord
+import er.codes.saltyvote.jooq.tables.records.VoteSubmissionEntriesRecord
+import er.codes.saltyvote.jooq.tables.records.VoteSubmissionsRecord
+import er.codes.saltyvote.jooq.tables.records.VotesRecord
 
 import org.jooq.ForeignKey
 import org.jooq.UniqueKey
@@ -26,9 +34,21 @@ val HISTORY_PKEY: UniqueKey<HistoryRecord> = Internal.createUniqueKey(History.HI
 val UQ_USERS_EMAIL: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("uq_users_email"), arrayOf(Users.USERS.EMAIL), true)
 val UQ_USERS_USERNAME: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("uq_users_username"), arrayOf(Users.USERS.USERNAME), true)
 val USERS_PKEY: UniqueKey<UsersRecord> = Internal.createUniqueKey(Users.USERS, DSL.name("users_pkey"), arrayOf(Users.USERS.UUID), true)
+val VOTE_OPTIONS_PKEY: UniqueKey<VoteOptionsRecord> = Internal.createUniqueKey(VoteOptions.VOTE_OPTIONS, DSL.name("vote_options_pkey"), arrayOf(VoteOptions.VOTE_OPTIONS.ID), true)
+val UQ_SUBMISSION_OPTION: UniqueKey<VoteSubmissionEntriesRecord> = Internal.createUniqueKey(VoteSubmissionEntries.VOTE_SUBMISSION_ENTRIES, DSL.name("uq_submission_option"), arrayOf(VoteSubmissionEntries.VOTE_SUBMISSION_ENTRIES.SUBMISSION_ID, VoteSubmissionEntries.VOTE_SUBMISSION_ENTRIES.OPTION_ID), true)
+val VOTE_SUBMISSION_ENTRIES_PKEY: UniqueKey<VoteSubmissionEntriesRecord> = Internal.createUniqueKey(VoteSubmissionEntries.VOTE_SUBMISSION_ENTRIES, DSL.name("vote_submission_entries_pkey"), arrayOf(VoteSubmissionEntries.VOTE_SUBMISSION_ENTRIES.ID), true)
+val VOTE_SUBMISSIONS_PKEY: UniqueKey<VoteSubmissionsRecord> = Internal.createUniqueKey(VoteSubmissions.VOTE_SUBMISSIONS, DSL.name("vote_submissions_pkey"), arrayOf(VoteSubmissions.VOTE_SUBMISSIONS.ID), true)
+val VOTE_SUBMISSIONS_VOTE_ID_USER_ID_KEY: UniqueKey<VoteSubmissionsRecord> = Internal.createUniqueKey(VoteSubmissions.VOTE_SUBMISSIONS, DSL.name("vote_submissions_vote_id_user_id_key"), arrayOf(VoteSubmissions.VOTE_SUBMISSIONS.VOTE_ID, VoteSubmissions.VOTE_SUBMISSIONS.USER_ID), true)
+val VOTES_PKEY: UniqueKey<VotesRecord> = Internal.createUniqueKey(Votes.VOTES, DSL.name("votes_pkey"), arrayOf(Votes.VOTES.ID), true)
 
 // -------------------------------------------------------------------------
 // FOREIGN KEY definitions
 // -------------------------------------------------------------------------
 
 val HISTORY__HISTORY_USER_ID_FKEY: ForeignKey<HistoryRecord, UsersRecord> = Internal.createForeignKey(History.HISTORY, DSL.name("history_user_id_fkey"), arrayOf(History.HISTORY.USER_ID), er.codes.saltyvote.jooq.keys.USERS_PKEY, arrayOf(Users.USERS.UUID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val VOTE_OPTIONS__VOTE_OPTIONS_VOTE_ID_FKEY: ForeignKey<VoteOptionsRecord, VotesRecord> = Internal.createForeignKey(VoteOptions.VOTE_OPTIONS, DSL.name("vote_options_vote_id_fkey"), arrayOf(VoteOptions.VOTE_OPTIONS.VOTE_ID), er.codes.saltyvote.jooq.keys.VOTES_PKEY, arrayOf(Votes.VOTES.ID), true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION)
+val VOTE_SUBMISSION_ENTRIES__VOTE_SUBMISSION_ENTRIES_OPTION_ID_FKEY: ForeignKey<VoteSubmissionEntriesRecord, VoteOptionsRecord> = Internal.createForeignKey(VoteSubmissionEntries.VOTE_SUBMISSION_ENTRIES, DSL.name("vote_submission_entries_option_id_fkey"), arrayOf(VoteSubmissionEntries.VOTE_SUBMISSION_ENTRIES.OPTION_ID), er.codes.saltyvote.jooq.keys.VOTE_OPTIONS_PKEY, arrayOf(VoteOptions.VOTE_OPTIONS.ID), true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION)
+val VOTE_SUBMISSION_ENTRIES__VOTE_SUBMISSION_ENTRIES_SUBMISSION_ID_FKEY: ForeignKey<VoteSubmissionEntriesRecord, VoteSubmissionsRecord> = Internal.createForeignKey(VoteSubmissionEntries.VOTE_SUBMISSION_ENTRIES, DSL.name("vote_submission_entries_submission_id_fkey"), arrayOf(VoteSubmissionEntries.VOTE_SUBMISSION_ENTRIES.SUBMISSION_ID), er.codes.saltyvote.jooq.keys.VOTE_SUBMISSIONS_PKEY, arrayOf(VoteSubmissions.VOTE_SUBMISSIONS.ID), true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION)
+val VOTE_SUBMISSIONS__VOTE_SUBMISSIONS_USER_ID_FKEY: ForeignKey<VoteSubmissionsRecord, UsersRecord> = Internal.createForeignKey(VoteSubmissions.VOTE_SUBMISSIONS, DSL.name("vote_submissions_user_id_fkey"), arrayOf(VoteSubmissions.VOTE_SUBMISSIONS.USER_ID), er.codes.saltyvote.jooq.keys.USERS_PKEY, arrayOf(Users.USERS.UUID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)
+val VOTE_SUBMISSIONS__VOTE_SUBMISSIONS_VOTE_ID_FKEY: ForeignKey<VoteSubmissionsRecord, VotesRecord> = Internal.createForeignKey(VoteSubmissions.VOTE_SUBMISSIONS, DSL.name("vote_submissions_vote_id_fkey"), arrayOf(VoteSubmissions.VOTE_SUBMISSIONS.VOTE_ID), er.codes.saltyvote.jooq.keys.VOTES_PKEY, arrayOf(Votes.VOTES.ID), true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION)
+val VOTES__VOTES_CREATOR_ID_FKEY: ForeignKey<VotesRecord, UsersRecord> = Internal.createForeignKey(Votes.VOTES, DSL.name("votes_creator_id_fkey"), arrayOf(Votes.VOTES.CREATOR_ID), er.codes.saltyvote.jooq.keys.USERS_PKEY, arrayOf(Users.USERS.UUID), true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION)

@@ -9,7 +9,11 @@ import er.codes.saltyvote.jooq.keys.HISTORY__HISTORY_USER_ID_FKEY
 import er.codes.saltyvote.jooq.keys.UQ_USERS_EMAIL
 import er.codes.saltyvote.jooq.keys.UQ_USERS_USERNAME
 import er.codes.saltyvote.jooq.keys.USERS_PKEY
+import er.codes.saltyvote.jooq.keys.VOTES__VOTES_CREATOR_ID_FKEY
+import er.codes.saltyvote.jooq.keys.VOTE_SUBMISSIONS__VOTE_SUBMISSIONS_USER_ID_FKEY
 import er.codes.saltyvote.jooq.tables.History.HistoryPath
+import er.codes.saltyvote.jooq.tables.VoteSubmissions.VoteSubmissionsPath
+import er.codes.saltyvote.jooq.tables.Votes.VotesPath
 import er.codes.saltyvote.jooq.tables.records.UsersRecord
 
 import java.time.OffsetDateTime
@@ -169,6 +173,37 @@ open class Users(
 
     val history: HistoryPath
         get(): HistoryPath = history()
+
+    private lateinit var _voteSubmissions: VoteSubmissionsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.vote_submissions</code> table
+     */
+    fun voteSubmissions(): VoteSubmissionsPath {
+        if (!this::_voteSubmissions.isInitialized)
+            _voteSubmissions = VoteSubmissionsPath(this, null, VOTE_SUBMISSIONS__VOTE_SUBMISSIONS_USER_ID_FKEY.inverseKey)
+
+        return _voteSubmissions;
+    }
+
+    val voteSubmissions: VoteSubmissionsPath
+        get(): VoteSubmissionsPath = voteSubmissions()
+
+    private lateinit var _votes: VotesPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.votes</code> table
+     */
+    fun votes(): VotesPath {
+        if (!this::_votes.isInitialized)
+            _votes = VotesPath(this, null, VOTES__VOTES_CREATOR_ID_FKEY.inverseKey)
+
+        return _votes;
+    }
+
+    val votes: VotesPath
+        get(): VotesPath = votes()
     override fun `as`(alias: String): Users = Users(DSL.name(alias), this)
     override fun `as`(alias: Name): Users = Users(alias, this)
     override fun `as`(alias: Table<*>): Users = Users(alias.qualifiedName, this)

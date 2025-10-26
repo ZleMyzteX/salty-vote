@@ -1,57 +1,57 @@
 services:
-    saltyvote-local:
-        image: postgres:17.6
-        container_name: saltyvote-database-local
-        restart: unless-stopped
-        environment:
-            POSTGRES_USER: saltyvote
-            POSTGRES_PASSWORD: totally-secure-password
-            POSTGRES_DB: saltyvote_db
-        ports:
-            - "5432:5432"
-        volumes:
-            - saltyvote_postgres_data:/var/lib/postgresql/data
-        networks:
-            - monitoring-network
+  saltyvote-local:
+    image: postgres:17.6
+    container_name: saltyvote-database-local
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: saltyvote
+      POSTGRES_PASSWORD: totally-secure-password
+      POSTGRES_DB: saltyvote_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - saltyvote_postgres_data:/var/lib/postgresql/data
+    networks:
+      - monitoring-network
 
-    saltyvote-prometheus-local:
-        image: prom/prometheus:latest
-        container_name: saltyvote-prometheus-local
-        restart: unless-stopped
-        command:
-            - "--config.file=/etc/prometheus/prometheus.yml"
-            - "--storage.tsdb.path=/prometheus"
-            - "--storage.tsdb.retention.time=200h"
-            - "--web.enable-lifecycle"
-        ports:
-            - "9090:9090"
-        volumes:
-            - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
-            - prometheus_data:/prometheus
-        networks:
-            - monitoring-network
+  saltyvote-prometheus-local:
+    image: prom/prometheus:latest
+    container_name: saltyvote-prometheus-local
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=200h"
+      - "--web.enable-lifecycle"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - monitoring-network
 
-    saltyvote-grafana-local:
-        image: grafana/grafana:latest
-        container_name: saltyvote-grafana-local
-        restart: unless-stopped
-        ports:
-            - "3000:3000"
-        networks:
-            - monitoring-network
-        volumes:
-            - grafana_data:/var/lib/grafana
-        depends_on:
-            - saltyvote-prometheus-local
+  saltyvote-grafana-local:
+    image: grafana/grafana:latest
+    container_name: saltyvote-grafana-local
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring-network
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - saltyvote-prometheus-local
 
 networks:
-    monitoring-network:
-        driver: bridge
+  monitoring-network:
+    driver: bridge
 
 volumes:
-    saltyvote_postgres_data:
-        driver: local
-    prometheus_data:
-        driver: local
-    grafana_data:
-        driver: local
+  saltyvote_postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

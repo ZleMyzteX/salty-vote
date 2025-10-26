@@ -71,4 +71,21 @@ open class UsersRecord() : UpdatableRecordImpl<UsersRecord>(Users.USERS) {
         this.updatedAt = updatedAt
         resetTouchedOnNotNull()
     }
+
+    /**
+     * Create a detached, initialised UsersRecord
+     */
+    constructor(value: er.codes.saltyvote.jooq.tables.pojos.Users?): this() {
+        if (value != null) {
+            this.uuid = value.uuid
+            this.email = value.email
+            this.username = value.username
+            this.password = value.password
+            this.admin = value.admin
+            this.enabled = value.enabled
+            this.createdAt = value.createdAt
+            this.updatedAt = value.updatedAt
+            resetTouchedOnNotNull()
+        }
+    }
 }

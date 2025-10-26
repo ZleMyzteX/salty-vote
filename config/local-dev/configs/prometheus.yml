@@ -1,9 +1,9 @@
 global:
-    scrape_interval: 10s
+  scrape_interval: 10s
 scrape_configs:
-    - job_name: "saltyvote-spring"
-      metrics_path: "/actuator/prometheus"
-      static_configs:
-          - targets: ["host.docker.internal:9999"]
-            labels:
-                application: "saltyvote"
+  - job_name: "saltyvote-spring"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["host.docker.internal:9999"]
+        labels:
+          application: "saltyvote"

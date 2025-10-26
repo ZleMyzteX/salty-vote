@@ -7,6 +7,10 @@ package er.codes.saltyvote.jooq.tables.references
 
 import er.codes.saltyvote.jooq.tables.History
 import er.codes.saltyvote.jooq.tables.Users
+import er.codes.saltyvote.jooq.tables.VoteOptions
+import er.codes.saltyvote.jooq.tables.VoteSubmissionEntries
+import er.codes.saltyvote.jooq.tables.VoteSubmissions
+import er.codes.saltyvote.jooq.tables.Votes
 
 
 
@@ -19,3 +23,23 @@ val HISTORY: History = History.HISTORY
  * The table <code>public.users</code>.
  */
 val USERS: Users = Users.USERS
+
+/**
+ * The table <code>public.vote_options</code>.
+ */
+val VOTE_OPTIONS: VoteOptions = VoteOptions.VOTE_OPTIONS
+
+/**
+ * The table <code>public.vote_submission_entries</code>.
+ */
+val VOTE_SUBMISSION_ENTRIES: VoteSubmissionEntries = VoteSubmissionEntries.VOTE_SUBMISSION_ENTRIES
+
+/**
+ * The table <code>public.vote_submissions</code>.
+ */
+val VOTE_SUBMISSIONS: VoteSubmissions = VoteSubmissions.VOTE_SUBMISSIONS
+
+/**
+ * The table <code>public.votes</code>.
+ */
+val VOTES: Votes = Votes.VOTES

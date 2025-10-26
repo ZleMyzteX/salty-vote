@@ -1,0 +1,12 @@
+.openapi-generator-ignore
+apis/AuthControllerApi.ts
+apis/UserControllerApi.ts
+apis/index.ts
+index.ts
+models/GatePasswordDto.ts
+models/UserCreateRequestDto.ts
+models/UserDetailDto.ts
+models/UserDto.ts
+models/UserLoginRequestDto.ts
+models/index.ts
+runtime.ts

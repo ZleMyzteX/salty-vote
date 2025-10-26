@@ -140,5 +140,5 @@ jooq {
 openApiGenerate {
     generatorName.set("typescript-fetch")
     inputSpec.set("$rootDir/src/main/resources/openapi-doc.json") // path to your OpenAPI spec
-    outputDir.set("$rootDir/saltyvote-front/src/generated") // output directory
+    outputDir.set("$rootDir/frontend/src/generated") // output directory
 }

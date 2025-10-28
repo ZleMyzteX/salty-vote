@@ -7,7 +7,9 @@ package er.codes.saltyvote.jooq.tables
 import er.codes.saltyvote.jooq.Public
 import er.codes.saltyvote.jooq.keys.VOTE_OPTIONS_PKEY
 import er.codes.saltyvote.jooq.keys.VOTE_OPTIONS__VOTE_OPTIONS_VOTE_ID_FKEY
+import er.codes.saltyvote.jooq.keys.VOTE_OPTION_EXTERNAL_DATA__VOTE_OPTION_EXTERNAL_DATA_VOTE_OPTION_ID_FKEY
 import er.codes.saltyvote.jooq.keys.VOTE_SUBMISSION_ENTRIES__VOTE_SUBMISSION_ENTRIES_OPTION_ID_FKEY
+import er.codes.saltyvote.jooq.tables.VoteOptionExternalData.VoteOptionExternalDataPath
 import er.codes.saltyvote.jooq.tables.VoteSubmissionEntries.VoteSubmissionEntriesPath
 import er.codes.saltyvote.jooq.tables.VoteSubmissions.VoteSubmissionsPath
 import er.codes.saltyvote.jooq.tables.Votes.VotesPath
@@ -151,6 +153,22 @@ open class VoteOptions(
      */
     fun votes(): VotesPath = votes
     val votes: VotesPath by lazy { VotesPath(this, VOTE_OPTIONS__VOTE_OPTIONS_VOTE_ID_FKEY, null) }
+
+    private lateinit var _voteOptionExternalData: VoteOptionExternalDataPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.vote_option_external_data</code> table
+     */
+    fun voteOptionExternalData(): VoteOptionExternalDataPath {
+        if (!this::_voteOptionExternalData.isInitialized)
+            _voteOptionExternalData = VoteOptionExternalDataPath(this, null, VOTE_OPTION_EXTERNAL_DATA__VOTE_OPTION_EXTERNAL_DATA_VOTE_OPTION_ID_FKEY.inverseKey)
+
+        return _voteOptionExternalData;
+    }
+
+    val voteOptionExternalData: VoteOptionExternalDataPath
+        get(): VoteOptionExternalDataPath = voteOptionExternalData()
 
     private lateinit var _voteSubmissionEntries: VoteSubmissionEntriesPath
 

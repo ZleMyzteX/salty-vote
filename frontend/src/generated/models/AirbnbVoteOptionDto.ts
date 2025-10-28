@@ -41,6 +41,24 @@ export interface AirbnbVoteOptionDto {
     description: string;
     /**
      * 
+     * @type {string}
+     * @memberof AirbnbVoteOptionDto
+     */
+    benefits: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AirbnbVoteOptionDto
+     */
+    disadvantages: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof AirbnbVoteOptionDto
+     */
+    travelTime: number;
+    /**
+     * 
      * @type {number}
      * @memberof AirbnbVoteOptionDto
      */
@@ -89,6 +107,9 @@ export interface AirbnbVoteOptionDto {
 export function instanceOfAirbnbVoteOptionDto(value: object): value is AirbnbVoteOptionDto {
     if (!('label' in value) || value['label'] === undefined) return false;
     if (!('description' in value) || value['description'] === undefined) return false;
+    if (!('benefits' in value) || value['benefits'] === undefined) return false;
+    if (!('disadvantages' in value) || value['disadvantages'] === undefined) return false;
+    if (!('travelTime' in value) || value['travelTime'] === undefined) return false;
     if (!('totalPrice' in value) || value['totalPrice'] === undefined) return false;
     if (!('country' in value) || value['country'] === undefined) return false;
     if (!('flightNeeded' in value) || value['flightNeeded'] === undefined) return false;
@@ -110,6 +131,9 @@ export function AirbnbVoteOptionDtoFromJSONTyped(json: any, ignoreDiscriminator:
         
         'label': json['label'],
         'description': json['description'],
+        'benefits': json['benefits'],
+        'disadvantages': json['disadvantages'],
+        'travelTime': json['travelTime'],
         'totalPrice': json['totalPrice'],
         'country': json['country'],
         'flightNeeded': json['flightNeeded'],
@@ -133,6 +157,9 @@ export function AirbnbVoteOptionDtoToJSONTyped(value?: AirbnbVoteOptionDto | nul
         
         'label': value['label'],
         'description': value['description'],
+        'benefits': value['benefits'],
+        'disadvantages': value['disadvantages'],
+        'travelTime': value['travelTime'],
         'totalPrice': value['totalPrice'],
         'country': value['country'],
         'flightNeeded': value['flightNeeded'],

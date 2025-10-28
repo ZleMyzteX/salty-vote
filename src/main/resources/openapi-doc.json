@@ -17,7 +17,201 @@
         }
     ],
     "paths": {
-        "/api/v1/vote": {
+        "/api/v1/votes/airbnb/{voteId}": {
+            "get": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "getAirbnbVote",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VoteWithAirbnbOptionsDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "updateAirbnbVote",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateAirbnbVoteDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {}
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "deleteVote",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/votes/{voteId}/collaborators": {
+            "get": {
+                "tags": [
+                    "vote-collaborator-controller"
+                ],
+                "operationId": "getCollaborators",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/CollaboratorDto"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "vote-collaborator-controller"
+                ],
+                "operationId": "addCollaborator",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddCollaboratorDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CollaboratorDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/votes/submissions": {
+            "post": {
+                "tags": [
+                    "vote-submission-controller"
+                ],
+                "operationId": "submitVote",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VoteSubmissionDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "integer",
+                                        "format": "int64"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/votes/airbnb": {
             "get": {
                 "tags": [
                     "vote-creation-controller"
@@ -31,7 +225,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/VoteDetailDto"
+                                        "$ref": "#/components/schemas/VoteListDto"
                                     }
                                 }
                             }
@@ -43,31 +237,41 @@
                 "tags": [
                     "vote-creation-controller"
                 ],
-                "operationId": "createNewVote",
-                "parameters": [
-                    {
-                        "name": "req",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/components/schemas/VoteCreationDto"
+                "operationId": "createNewAirbnbVote",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateAirbnbVoteDto"
+                            }
                         }
-                    }
-                ],
+                    },
+                    "required": true
+                },
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "content": {}
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "integer",
+                                        "format": "int64"
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
-        "/api/v1/vote/{voteId}/option": {
+        "/api/v1/votes/airbnb/{voteId}/options": {
             "post": {
                 "tags": [
                     "vote-creation-controller"
                 ],
-                "operationId": "createVoteOption",
+                "operationId": "addVoteOption",
                 "parameters": [
                     {
                         "name": "voteId",
@@ -77,53 +281,32 @@
                             "type": "integer",
                             "format": "int64"
                         }
-                    },
-                    {
-                        "name": "req",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/components/schemas/VoteOptionDto"
-                        }
                     }
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AirbnbVoteOptionDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "content": {}
-                    }
-                }
-            }
-        },
-        "/api/v1/vote/{voteId}/option/airbnb": {
-            "post": {
-                "tags": [
-                    "vote-creation-controller"
-                ],
-                "operationId": "createVoteOption_1",
-                "parameters": [
-                    {
-                        "name": "voteId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "integer",
+                                        "format": "int64"
+                                    }
+                                }
+                            }
                         }
-                    },
-                    {
-                        "name": "req",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/components/schemas/AirbnbVoteOptionDto"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {}
                     }
                 }
             }
@@ -238,6 +421,201 @@
                 }
             }
         },
+        "/api/v1/votes/airbnb/{voteId}/status": {
+            "patch": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "markVoteAsDone",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "done",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/votes/{voteId}/submissions/my": {
+            "get": {
+                "tags": [
+                    "vote-submission-controller"
+                ],
+                "operationId": "getMySubmission",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VoteSubmissionResponseDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "vote-submission-controller"
+                ],
+                "operationId": "deleteMySubmission",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/votes/{voteId}/results": {
+            "get": {
+                "tags": [
+                    "vote-submission-controller"
+                ],
+                "operationId": "getVoteResults",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VoteResultsDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/votes/{voteId}/results/detailed": {
+            "get": {
+                "tags": [
+                    "vote-submission-controller"
+                ],
+                "operationId": "getDetailedVoteResults",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VoteDetailedResultsDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/votes/airbnb/with-relationship": {
+            "get": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "getAllVotesWithRelationship",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/VoteListWithRelationshipDto"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/votes/airbnb/my": {
+            "get": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "getMyVotes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/VoteListDto"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/user": {
             "get": {
                 "tags": [
@@ -303,64 +681,93 @@
                     }
                 }
             }
+        },
+        "/api/v1/votes/{voteId}/collaborators/{collaboratorId}": {
+            "delete": {
+                "tags": [
+                    "vote-collaborator-controller"
+                ],
+                "operationId": "removeCollaborator",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "collaboratorId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/votes/airbnb/{voteId}/options/{optionId}": {
+            "delete": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "deleteVoteOption",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "optionId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {}
+                    }
+                }
+            }
         }
     },
     "components": {
         "schemas": {
-            "VoteCreationDto": {
-                "type": "object",
-                "properties": {
-                    "title": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": "string"
-                    },
-                    "voteType": {
-                        "type": "string",
-                        "enum": [
-                            "RANKING",
-                            "SIMPLE"
-                        ]
-                    },
-                    "allowMultiVote": {
-                        "type": "boolean"
-                    },
-                    "allowAnonymousVote": {
-                        "type": "boolean"
-                    },
-                    "done": {
-                        "type": "boolean"
-                    }
-                },
-                "required": [
-                    "allowAnonymousVote",
-                    "allowMultiVote",
-                    "done",
-                    "title",
-                    "voteType"
-                ]
-            },
-            "VoteOptionDto": {
-                "type": "object",
-                "properties": {
-                    "label": {
-                        "type": "string"
-                    },
-                    "preDefinedPosition": {
-                        "type": "integer",
-                        "format": "int32"
-                    }
-                },
-                "required": [
-                    "label"
-                ]
-            },
             "AirbnbVoteOptionData": {
                 "type": "object",
                 "properties": {
                     "description": {
                         "type": "string"
+                    },
+                    "benefits": {
+                        "type": "string"
+                    },
+                    "disadvantages": {
+                        "type": "string"
+                    },
+                    "travelTime": {
+                        "type": "number",
+                        "format": "float"
                     },
                     "totalPrice": {
                         "type": "number",
@@ -383,10 +790,13 @@
                 "required": [
                     "airbnbLink",
                     "airbnbPrice",
+                    "benefits",
                     "country",
                     "description",
+                    "disadvantages",
                     "flightNeeded",
-                    "totalPrice"
+                    "totalPrice",
+                    "travelTime"
                 ]
             },
             "AirbnbVoteOptionDto": {
@@ -397,6 +807,16 @@
                     },
                     "description": {
                         "type": "string"
+                    },
+                    "benefits": {
+                        "type": "string"
+                    },
+                    "disadvantages": {
+                        "type": "string"
+                    },
+                    "travelTime": {
+                        "type": "number",
+                        "format": "float"
                     },
                     "totalPrice": {
                         "type": "number",
@@ -427,11 +847,130 @@
                     "airbnbData",
                     "airbnbLink",
                     "airbnbPrice",
+                    "benefits",
                     "country",
                     "description",
+                    "disadvantages",
                     "flightNeeded",
                     "label",
-                    "totalPrice"
+                    "totalPrice",
+                    "travelTime"
+                ]
+            },
+            "CreateAirbnbVoteDto": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "voteType": {
+                        "type": "string",
+                        "enum": [
+                            "RANKING",
+                            "SIMPLE"
+                        ]
+                    },
+                    "allowMultiVote": {
+                        "type": "boolean"
+                    },
+                    "allowAnonymousVote": {
+                        "type": "boolean"
+                    },
+                    "done": {
+                        "type": "boolean"
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AirbnbVoteOptionDto"
+                        }
+                    }
+                },
+                "required": [
+                    "allowAnonymousVote",
+                    "allowMultiVote",
+                    "done",
+                    "options",
+                    "title",
+                    "voteType"
+                ]
+            },
+            "AddCollaboratorDto": {
+                "type": "object",
+                "properties": {
+                    "userId": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "userId"
+                ]
+            },
+            "CollaboratorDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "userId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "email",
+                    "id",
+                    "userId",
+                    "username"
+                ]
+            },
+            "VoteSubmissionDto": {
+                "type": "object",
+                "properties": {
+                    "voteId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "entries": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VoteSubmissionEntryDto"
+                        }
+                    }
+                },
+                "required": [
+                    "entries",
+                    "voteId"
+                ]
+            },
+            "VoteSubmissionEntryDto": {
+                "type": "object",
+                "properties": {
+                    "optionId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "rank": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "selected": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "optionId"
                 ]
             },
             "UserCreateRequestDto": {
@@ -479,7 +1018,234 @@
                     "password"
                 ]
             },
-            "VoteDetailDto": {
+            "VoteSubmissionResponseDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "voteId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "userId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "entries": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VoteSubmissionEntryDto"
+                        }
+                    }
+                },
+                "required": [
+                    "entries",
+                    "id",
+                    "userId",
+                    "voteId"
+                ]
+            },
+            "VoteOptionResultDto": {
+                "type": "object",
+                "properties": {
+                    "optionId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "voteCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "percentage": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "averageRank": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "required": [
+                    "label",
+                    "optionId",
+                    "percentage",
+                    "voteCount"
+                ]
+            },
+            "VoteResultsDto": {
+                "type": "object",
+                "properties": {
+                    "voteId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "totalSubmissions": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VoteOptionResultDto"
+                        }
+                    }
+                },
+                "required": [
+                    "results",
+                    "title",
+                    "totalSubmissions",
+                    "voteId"
+                ]
+            },
+            "IndividualVoterDto": {
+                "type": "object",
+                "properties": {
+                    "userId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "submittedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "rankings": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VoterRankingDto"
+                        }
+                    }
+                },
+                "required": [
+                    "email",
+                    "rankings",
+                    "submittedAt",
+                    "userId",
+                    "username"
+                ]
+            },
+            "VoteDetailedResultsDto": {
+                "type": "object",
+                "properties": {
+                    "voteId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "voteType": {
+                        "type": "string",
+                        "enum": [
+                            "RANKING",
+                            "SIMPLE"
+                        ]
+                    },
+                    "totalSubmissions": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VoteOptionResultDto"
+                        }
+                    },
+                    "individualVoters": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/IndividualVoterDto"
+                        }
+                    }
+                },
+                "required": [
+                    "individualVoters",
+                    "results",
+                    "title",
+                    "totalSubmissions",
+                    "voteId",
+                    "voteType"
+                ]
+            },
+            "VoterRankingDto": {
+                "type": "object",
+                "properties": {
+                    "optionId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "optionLabel": {
+                        "type": "string"
+                    },
+                    "rank": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "selected": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "optionId",
+                    "optionLabel"
+                ]
+            },
+            "VoteListDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "title"
+                ]
+            },
+            "AirbnbVoteOptionResponseDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/AirbnbVoteOptionData"
+                    },
+                    "preDefinedPosition": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "required": [
+                    "id",
+                    "label"
+                ]
+            },
+            "VoteWithAirbnbOptionsDto": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -508,10 +1274,16 @@
                     "done": {
                         "type": "boolean"
                     },
+                    "isCreator": {
+                        "type": "boolean"
+                    },
+                    "isCollaborator": {
+                        "type": "boolean"
+                    },
                     "options": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/VoteOptionDto"
+                            "$ref": "#/components/schemas/AirbnbVoteOptionResponseDto"
                         }
                     }
                 },
@@ -520,9 +1292,38 @@
                     "allowMultiVote",
                     "done",
                     "id",
+                    "isCollaborator",
+                    "isCreator",
                     "options",
                     "title",
                     "voteType"
+                ]
+            },
+            "VoteListWithRelationshipDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "isCreator": {
+                        "type": "boolean"
+                    },
+                    "isCollaborator": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "id",
+                    "isCollaborator",
+                    "isCreator",
+                    "title"
                 ]
             },
             "UserDto": {

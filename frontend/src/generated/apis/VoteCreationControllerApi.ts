@@ -16,33 +16,54 @@
 import * as runtime from '../runtime';
 import type {
   AirbnbVoteOptionDto,
-  VoteCreationDto,
-  VoteDetailDto,
-  VoteOptionDto,
+  CreateAirbnbVoteDto,
+  VoteListDto,
+  VoteListWithRelationshipDto,
+  VoteWithAirbnbOptionsDto,
 } from '../models/index';
 import {
     AirbnbVoteOptionDtoFromJSON,
     AirbnbVoteOptionDtoToJSON,
-    VoteCreationDtoFromJSON,
-    VoteCreationDtoToJSON,
-    VoteDetailDtoFromJSON,
-    VoteDetailDtoToJSON,
-    VoteOptionDtoFromJSON,
-    VoteOptionDtoToJSON,
+    CreateAirbnbVoteDtoFromJSON,
+    CreateAirbnbVoteDtoToJSON,
+    VoteListDtoFromJSON,
+    VoteListDtoToJSON,
+    VoteListWithRelationshipDtoFromJSON,
+    VoteListWithRelationshipDtoToJSON,
+    VoteWithAirbnbOptionsDtoFromJSON,
+    VoteWithAirbnbOptionsDtoToJSON,
 } from '../models/index';
 
-export interface CreateNewVoteRequest {
-    req: VoteCreationDto;
+export interface AddVoteOptionRequest {
+    voteId: number;
+    airbnbVoteOptionDto: AirbnbVoteOptionDto;
 }
 
-export interface CreateVoteOptionRequest {
-    voteId: number;
-    req: VoteOptionDto;
+export interface CreateNewAirbnbVoteRequest {
+    createAirbnbVoteDto: CreateAirbnbVoteDto;
 }
 
-export interface CreateVoteOption1Request {
+export interface DeleteVoteRequest {
     voteId: number;
-    req: AirbnbVoteOptionDto;
+}
+
+export interface DeleteVoteOptionRequest {
+    voteId: number;
+    optionId: number;
+}
+
+export interface GetAirbnbVoteRequest {
+    voteId: number;
+}
+
+export interface MarkVoteAsDoneRequest {
+    voteId: number;
+    done: boolean;
+}
+
+export interface UpdateAirbnbVoteRequest {
+    voteId: number;
+    createAirbnbVoteDto: CreateAirbnbVoteDto;
 }
 
 /**
@@ -52,68 +73,29 @@ export class VoteCreationControllerApi extends runtime.BaseAPI {
 
     /**
      */
-    async createNewVoteRaw(requestParameters: CreateNewVoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters['req'] == null) {
-            throw new runtime.RequiredError(
-                'req',
-                'Required parameter "req" was null or undefined when calling createNewVote().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters['req'] != null) {
-            queryParameters['req'] = requestParameters['req'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-
-        let urlPath = `/api/v1/vote`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     */
-    async createNewVote(requestParameters: CreateNewVoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.createNewVoteRaw(requestParameters, initOverrides);
-    }
-
-    /**
-     */
-    async createVoteOptionRaw(requestParameters: CreateVoteOptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async addVoteOptionRaw(requestParameters: AddVoteOptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{ [key: string]: number; }>> {
         if (requestParameters['voteId'] == null) {
             throw new runtime.RequiredError(
                 'voteId',
-                'Required parameter "voteId" was null or undefined when calling createVoteOption().'
+                'Required parameter "voteId" was null or undefined when calling addVoteOption().'
             );
         }
 
-        if (requestParameters['req'] == null) {
+        if (requestParameters['airbnbVoteOptionDto'] == null) {
             throw new runtime.RequiredError(
-                'req',
-                'Required parameter "req" was null or undefined when calling createVoteOption().'
+                'airbnbVoteOptionDto',
+                'Required parameter "airbnbVoteOptionDto" was null or undefined when calling addVoteOption().'
             );
         }
 
         const queryParameters: any = {};
 
-        if (requestParameters['req'] != null) {
-            queryParameters['req'] = requestParameters['req'];
-        }
-
         const headerParameters: runtime.HTTPHeaders = {};
 
+        headerParameters['Content-Type'] = 'application/json';
 
-        let urlPath = `/api/v1/vote/{voteId}/option`;
+
+        let urlPath = `/api/v1/votes/airbnb/{voteId}/options`;
         urlPath = urlPath.replace(`{${"voteId"}}`, encodeURIComponent(String(requestParameters['voteId'])));
 
         const response = await this.request({
@@ -121,49 +103,77 @@ export class VoteCreationControllerApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
+            body: AirbnbVoteOptionDtoToJSON(requestParameters['airbnbVoteOptionDto']),
         }, initOverrides);
 
-        return new runtime.VoidApiResponse(response);
+        return new runtime.JSONApiResponse<any>(response);
     }
 
     /**
      */
-    async createVoteOption(requestParameters: CreateVoteOptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.createVoteOptionRaw(requestParameters, initOverrides);
+    async addVoteOption(requestParameters: AddVoteOptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{ [key: string]: number; }> {
+        const response = await this.addVoteOptionRaw(requestParameters, initOverrides);
+        return await response.value();
     }
 
     /**
      */
-    async createVoteOption1Raw(requestParameters: CreateVoteOption1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters['voteId'] == null) {
+    async createNewAirbnbVoteRaw(requestParameters: CreateNewAirbnbVoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{ [key: string]: number; }>> {
+        if (requestParameters['createAirbnbVoteDto'] == null) {
             throw new runtime.RequiredError(
-                'voteId',
-                'Required parameter "voteId" was null or undefined when calling createVoteOption1().'
-            );
-        }
-
-        if (requestParameters['req'] == null) {
-            throw new runtime.RequiredError(
-                'req',
-                'Required parameter "req" was null or undefined when calling createVoteOption1().'
+                'createAirbnbVoteDto',
+                'Required parameter "createAirbnbVoteDto" was null or undefined when calling createNewAirbnbVote().'
             );
         }
 
         const queryParameters: any = {};
 
-        if (requestParameters['req'] != null) {
-            queryParameters['req'] = requestParameters['req'];
-        }
-
         const headerParameters: runtime.HTTPHeaders = {};
 
+        headerParameters['Content-Type'] = 'application/json';
 
-        let urlPath = `/api/v1/vote/{voteId}/option/airbnb`;
-        urlPath = urlPath.replace(`{${"voteId"}}`, encodeURIComponent(String(requestParameters['voteId'])));
+
+        let urlPath = `/api/v1/votes/airbnb`;
 
         const response = await this.request({
             path: urlPath,
             method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateAirbnbVoteDtoToJSON(requestParameters['createAirbnbVoteDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     */
+    async createNewAirbnbVote(requestParameters: CreateNewAirbnbVoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{ [key: string]: number; }> {
+        const response = await this.createNewAirbnbVoteRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async deleteVoteRaw(requestParameters: DeleteVoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['voteId'] == null) {
+            throw new runtime.RequiredError(
+                'voteId',
+                'Required parameter "voteId" was null or undefined when calling deleteVote().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/v1/votes/airbnb/{voteId}`;
+        urlPath = urlPath.replace(`{${"voteId"}}`, encodeURIComponent(String(requestParameters['voteId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
         }, initOverrides);
@@ -173,19 +183,69 @@ export class VoteCreationControllerApi extends runtime.BaseAPI {
 
     /**
      */
-    async createVoteOption1(requestParameters: CreateVoteOption1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.createVoteOption1Raw(requestParameters, initOverrides);
+    async deleteVote(requestParameters: DeleteVoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteVoteRaw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async getAllVotesRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VoteDetailDto>>> {
+    async deleteVoteOptionRaw(requestParameters: DeleteVoteOptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['voteId'] == null) {
+            throw new runtime.RequiredError(
+                'voteId',
+                'Required parameter "voteId" was null or undefined when calling deleteVoteOption().'
+            );
+        }
+
+        if (requestParameters['optionId'] == null) {
+            throw new runtime.RequiredError(
+                'optionId',
+                'Required parameter "optionId" was null or undefined when calling deleteVoteOption().'
+            );
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
 
-        let urlPath = `/api/v1/vote`;
+        let urlPath = `/api/v1/votes/airbnb/{voteId}/options/{optionId}`;
+        urlPath = urlPath.replace(`{${"voteId"}}`, encodeURIComponent(String(requestParameters['voteId'])));
+        urlPath = urlPath.replace(`{${"optionId"}}`, encodeURIComponent(String(requestParameters['optionId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async deleteVoteOption(requestParameters: DeleteVoteOptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteVoteOptionRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async getAirbnbVoteRaw(requestParameters: GetAirbnbVoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<VoteWithAirbnbOptionsDto>> {
+        if (requestParameters['voteId'] == null) {
+            throw new runtime.RequiredError(
+                'voteId',
+                'Required parameter "voteId" was null or undefined when calling getAirbnbVote().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/v1/votes/airbnb/{voteId}`;
+        urlPath = urlPath.replace(`{${"voteId"}}`, encodeURIComponent(String(requestParameters['voteId'])));
 
         const response = await this.request({
             path: urlPath,
@@ -194,14 +254,184 @@ export class VoteCreationControllerApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(VoteDetailDtoFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => VoteWithAirbnbOptionsDtoFromJSON(jsonValue));
     }
 
     /**
      */
-    async getAllVotes(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VoteDetailDto>> {
+    async getAirbnbVote(requestParameters: GetAirbnbVoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<VoteWithAirbnbOptionsDto> {
+        const response = await this.getAirbnbVoteRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getAllVotesRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VoteListDto>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/v1/votes/airbnb`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(VoteListDtoFromJSON));
+    }
+
+    /**
+     */
+    async getAllVotes(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VoteListDto>> {
         const response = await this.getAllVotesRaw(initOverrides);
         return await response.value();
+    }
+
+    /**
+     */
+    async getAllVotesWithRelationshipRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VoteListWithRelationshipDto>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/v1/votes/airbnb/with-relationship`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(VoteListWithRelationshipDtoFromJSON));
+    }
+
+    /**
+     */
+    async getAllVotesWithRelationship(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VoteListWithRelationshipDto>> {
+        const response = await this.getAllVotesWithRelationshipRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async getMyVotesRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VoteListDto>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/v1/votes/airbnb/my`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(VoteListDtoFromJSON));
+    }
+
+    /**
+     */
+    async getMyVotes(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VoteListDto>> {
+        const response = await this.getMyVotesRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async markVoteAsDoneRaw(requestParameters: MarkVoteAsDoneRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['voteId'] == null) {
+            throw new runtime.RequiredError(
+                'voteId',
+                'Required parameter "voteId" was null or undefined when calling markVoteAsDone().'
+            );
+        }
+
+        if (requestParameters['done'] == null) {
+            throw new runtime.RequiredError(
+                'done',
+                'Required parameter "done" was null or undefined when calling markVoteAsDone().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['done'] != null) {
+            queryParameters['done'] = requestParameters['done'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/v1/votes/airbnb/{voteId}/status`;
+        urlPath = urlPath.replace(`{${"voteId"}}`, encodeURIComponent(String(requestParameters['voteId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async markVoteAsDone(requestParameters: MarkVoteAsDoneRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.markVoteAsDoneRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async updateAirbnbVoteRaw(requestParameters: UpdateAirbnbVoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['voteId'] == null) {
+            throw new runtime.RequiredError(
+                'voteId',
+                'Required parameter "voteId" was null or undefined when calling updateAirbnbVote().'
+            );
+        }
+
+        if (requestParameters['createAirbnbVoteDto'] == null) {
+            throw new runtime.RequiredError(
+                'createAirbnbVoteDto',
+                'Required parameter "createAirbnbVoteDto" was null or undefined when calling updateAirbnbVote().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/v1/votes/airbnb/{voteId}`;
+        urlPath = urlPath.replace(`{${"voteId"}}`, encodeURIComponent(String(requestParameters['voteId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateAirbnbVoteDtoToJSON(requestParameters['createAirbnbVoteDto']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async updateAirbnbVote(requestParameters: UpdateAirbnbVoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.updateAirbnbVoteRaw(requestParameters, initOverrides);
     }
 
 }

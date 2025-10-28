@@ -8,9 +8,11 @@ import er.codes.saltyvote.jooq.Public
 import er.codes.saltyvote.jooq.enums.VoteType
 import er.codes.saltyvote.jooq.keys.VOTES_PKEY
 import er.codes.saltyvote.jooq.keys.VOTES__VOTES_CREATOR_ID_FKEY
+import er.codes.saltyvote.jooq.keys.VOTE_COLLABORATORS__VOTE_COLLABORATORS_VOTE_ID_FKEY
 import er.codes.saltyvote.jooq.keys.VOTE_OPTIONS__VOTE_OPTIONS_VOTE_ID_FKEY
 import er.codes.saltyvote.jooq.keys.VOTE_SUBMISSIONS__VOTE_SUBMISSIONS_VOTE_ID_FKEY
 import er.codes.saltyvote.jooq.tables.Users.UsersPath
+import er.codes.saltyvote.jooq.tables.VoteCollaborators.VoteCollaboratorsPath
 import er.codes.saltyvote.jooq.tables.VoteOptions.VoteOptionsPath
 import er.codes.saltyvote.jooq.tables.VoteSubmissions.VoteSubmissionsPath
 import er.codes.saltyvote.jooq.tables.records.VotesRecord
@@ -174,6 +176,22 @@ open class Votes(
     fun users(): UsersPath = users
     val users: UsersPath by lazy { UsersPath(this, VOTES__VOTES_CREATOR_ID_FKEY, null) }
 
+    private lateinit var _voteCollaborators: VoteCollaboratorsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.vote_collaborators</code> table
+     */
+    fun voteCollaborators(): VoteCollaboratorsPath {
+        if (!this::_voteCollaborators.isInitialized)
+            _voteCollaborators = VoteCollaboratorsPath(this, null, VOTE_COLLABORATORS__VOTE_COLLABORATORS_VOTE_ID_FKEY.inverseKey)
+
+        return _voteCollaborators;
+    }
+
+    val voteCollaborators: VoteCollaboratorsPath
+        get(): VoteCollaboratorsPath = voteCollaborators()
+
     private lateinit var _voteOptions: VoteOptionsPath
 
     /**
@@ -205,6 +223,20 @@ open class Votes(
 
     val voteSubmissions: VoteSubmissionsPath
         get(): VoteSubmissionsPath = voteSubmissions()
+
+    /**
+     * Get the implicit many-to-many join path to the <code>public.users</code>
+     * table, via the <code>vote_collaborators_user_id_fkey</code> key
+     */
+    val voteCollaboratorsUserIdFkey: UsersPath
+        get(): UsersPath = voteCollaborators().users()
+
+    /**
+     * Get the implicit many-to-many join path to the <code>public.users</code>
+     * table, via the <code>vote_submissions_user_id_fkey</code> key
+     */
+    val voteSubmissionsUserIdFkey: UsersPath
+        get(): UsersPath = voteSubmissions().users()
     override fun `as`(alias: String): Votes = Votes(DSL.name(alias), this)
     override fun `as`(alias: Name): Votes = Votes(alias, this)
     override fun `as`(alias: Table<*>): Votes = Votes(alias.qualifiedName, this)

@@ -5,6 +5,8 @@ import er.codes.saltyvote.auth.model.UserCreateRequestDto
 import er.codes.saltyvote.auth.model.UserEntity
 import er.codes.saltyvote.auth.model.UserLoginRequestDto
 import er.codes.saltyvote.auth.repository.UserDao
+import er.codes.saltyvote.history.model.events.UserLogInEvent
+import er.codes.saltyvote.history.model.events.UserRegisteredEvent
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
@@ -23,6 +25,7 @@ class AuthService(
 
         val passwordHash = passwordEncoder.encode(userCreateRequest.password)
         val user = userDao.createUser(userCreateRequest.username, passwordHash, userCreateRequest.email)
+        applicationEventPublisher.publishEvent(UserRegisteredEvent(user))
         return user
     }
 
@@ -30,6 +33,7 @@ class AuthService(
         val user = userDao.findByUsername(userLoginRequest.username) ?: return null
 
         return if (passwordMatches(userLoginRequest.password, user.password!!)) {
+            applicationEventPublisher.publishEvent(UserLogInEvent(user.id))
             return user
         } else {
             null

@@ -10,8 +10,10 @@ import er.codes.saltyvote.jooq.keys.UQ_USERS_EMAIL
 import er.codes.saltyvote.jooq.keys.UQ_USERS_USERNAME
 import er.codes.saltyvote.jooq.keys.USERS_PKEY
 import er.codes.saltyvote.jooq.keys.VOTES__VOTES_CREATOR_ID_FKEY
+import er.codes.saltyvote.jooq.keys.VOTE_COLLABORATORS__VOTE_COLLABORATORS_USER_ID_FKEY
 import er.codes.saltyvote.jooq.keys.VOTE_SUBMISSIONS__VOTE_SUBMISSIONS_USER_ID_FKEY
 import er.codes.saltyvote.jooq.tables.History.HistoryPath
+import er.codes.saltyvote.jooq.tables.VoteCollaborators.VoteCollaboratorsPath
 import er.codes.saltyvote.jooq.tables.VoteSubmissions.VoteSubmissionsPath
 import er.codes.saltyvote.jooq.tables.Votes.VotesPath
 import er.codes.saltyvote.jooq.tables.records.UsersRecord
@@ -174,6 +176,22 @@ open class Users(
     val history: HistoryPath
         get(): HistoryPath = history()
 
+    private lateinit var _voteCollaborators: VoteCollaboratorsPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.vote_collaborators</code> table
+     */
+    fun voteCollaborators(): VoteCollaboratorsPath {
+        if (!this::_voteCollaborators.isInitialized)
+            _voteCollaborators = VoteCollaboratorsPath(this, null, VOTE_COLLABORATORS__VOTE_COLLABORATORS_USER_ID_FKEY.inverseKey)
+
+        return _voteCollaborators;
+    }
+
+    val voteCollaborators: VoteCollaboratorsPath
+        get(): VoteCollaboratorsPath = voteCollaborators()
+
     private lateinit var _voteSubmissions: VoteSubmissionsPath
 
     /**
@@ -204,6 +222,20 @@ open class Users(
 
     val votes: VotesPath
         get(): VotesPath = votes()
+
+    /**
+     * Get the implicit many-to-many join path to the <code>public.votes</code>
+     * table, via the <code>vote_collaborators_vote_id_fkey</code> key
+     */
+    val voteCollaboratorsVoteIdFkey: VotesPath
+        get(): VotesPath = voteCollaborators().votes()
+
+    /**
+     * Get the implicit many-to-many join path to the <code>public.votes</code>
+     * table, via the <code>vote_submissions_vote_id_fkey</code> key
+     */
+    val voteSubmissionsVoteIdFkey: VotesPath
+        get(): VotesPath = voteSubmissions().votes()
     override fun `as`(alias: String): Users = Users(DSL.name(alias), this)
     override fun `as`(alias: Name): Users = Users(alias, this)
     override fun `as`(alias: Table<*>): Users = Users(alias.qualifiedName, this)

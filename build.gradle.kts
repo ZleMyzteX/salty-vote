@@ -7,8 +7,10 @@ plugins {
     id("com.diffplug.spotless") version "8.0.0"
     id("org.openapi.generator") version "7.16.0"
     id("com.google.cloud.tools.jib") version "3.4.5"
-    id("org.jooq.jooq-codegen-gradle") version "3.20.6"
+    id("org.jooq.jooq-codegen-gradle") version "3.20.8"
     id("com.github.ben-manes.versions") version "0.53.0"
+    // TODO: remove
+    kotlin("plugin.serialization") version "2.2.0"
 }
 
 group = "er.codes"
@@ -46,17 +48,27 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingVer")
+
+    // jwt
     implementation("io.jsonwebtoken:jjwt-root:$jwtVer")
     implementation("io.jsonwebtoken:jjwt-api:$jwtVer")
     implementation("io.jsonwebtoken:jjwt-impl:$jwtVer")
     implementation("io.jsonwebtoken:jjwt-jackson:$jwtVer")
 
+    // jooq
     implementation("org.jooq:jooq:$jooqVer")
     implementation("org.jooq:jooq-kotlin:$jooqVer")
     implementation("org.jooq:jooq-kotlin-coroutines:$jooqVer")
     implementation("org.jooq:jooq-postgres-extensions:$jooqVer")
     jooqCodegen("org.jooq:jooq-postgres-extensions:$jooqVer")
     jooqCodegen("org.postgresql:postgresql")
+
+    // scraping
+    implementation("org.seleniumhq.selenium:selenium-java:4.38.0")
+    implementation("org.jsoup:jsoup:1.21.2")
+    implementation("it.skrape:skrapeit:1.2.2")
+    // TODO: remove
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 

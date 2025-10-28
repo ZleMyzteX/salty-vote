@@ -22,7 +22,10 @@ enum class ActionType(@get:JvmName("literal") public val literal: String) : Enum
     LOBBY_RESOLVE("LOBBY_RESOLVE"),
     USER_REGISTERED("USER_REGISTERED"),
     USER_LOGIN("USER_LOGIN"),
-    USER_PASSWORD_CHANGED("USER_PASSWORD_CHANGED");
+    USER_PASSWORD_CHANGED("USER_PASSWORD_CHANGED"),
+    VOTE_CREATED("VOTE_CREATED"),
+    VOTE_SUBMITTED("VOTE_SUBMITTED"),
+    VOTE_ENTRY_CREATED("VOTE_ENTRY_CREATED");
     override fun getCatalog(): Catalog? = schema.catalog
     override fun getSchema(): Schema = Public.PUBLIC
     override fun getName(): String = "action_type"

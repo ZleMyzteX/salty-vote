@@ -27,6 +27,24 @@ export interface AirbnbVoteOptionData {
     description: string;
     /**
      * 
+     * @type {string}
+     * @memberof AirbnbVoteOptionData
+     */
+    benefits: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AirbnbVoteOptionData
+     */
+    disadvantages: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof AirbnbVoteOptionData
+     */
+    travelTime: number;
+    /**
+     * 
      * @type {number}
      * @memberof AirbnbVoteOptionData
      */
@@ -62,6 +80,9 @@ export interface AirbnbVoteOptionData {
  */
 export function instanceOfAirbnbVoteOptionData(value: object): value is AirbnbVoteOptionData {
     if (!('description' in value) || value['description'] === undefined) return false;
+    if (!('benefits' in value) || value['benefits'] === undefined) return false;
+    if (!('disadvantages' in value) || value['disadvantages'] === undefined) return false;
+    if (!('travelTime' in value) || value['travelTime'] === undefined) return false;
     if (!('totalPrice' in value) || value['totalPrice'] === undefined) return false;
     if (!('country' in value) || value['country'] === undefined) return false;
     if (!('flightNeeded' in value) || value['flightNeeded'] === undefined) return false;
@@ -81,6 +102,9 @@ export function AirbnbVoteOptionDataFromJSONTyped(json: any, ignoreDiscriminator
     return {
         
         'description': json['description'],
+        'benefits': json['benefits'],
+        'disadvantages': json['disadvantages'],
+        'travelTime': json['travelTime'],
         'totalPrice': json['totalPrice'],
         'country': json['country'],
         'flightNeeded': json['flightNeeded'],
@@ -101,6 +125,9 @@ export function AirbnbVoteOptionDataToJSONTyped(value?: AirbnbVoteOptionData | n
     return {
         
         'description': value['description'],
+        'benefits': value['benefits'],
+        'disadvantages': value['disadvantages'],
+        'travelTime': value['travelTime'],
         'totalPrice': value['totalPrice'],
         'country': value['country'],
         'flightNeeded': value['flightNeeded'],

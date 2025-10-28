@@ -6,7 +6,10 @@ package er.codes.saltyvote.jooq.tables.references
 
 
 import er.codes.saltyvote.jooq.tables.History
+import er.codes.saltyvote.jooq.tables.LocalPictureStore
 import er.codes.saltyvote.jooq.tables.Users
+import er.codes.saltyvote.jooq.tables.VoteCollaborators
+import er.codes.saltyvote.jooq.tables.VoteOptionExternalData
 import er.codes.saltyvote.jooq.tables.VoteOptions
 import er.codes.saltyvote.jooq.tables.VoteSubmissionEntries
 import er.codes.saltyvote.jooq.tables.VoteSubmissions
@@ -20,9 +23,24 @@ import er.codes.saltyvote.jooq.tables.Votes
 val HISTORY: History = History.HISTORY
 
 /**
+ * The table <code>public.local_picture_store</code>.
+ */
+val LOCAL_PICTURE_STORE: LocalPictureStore = LocalPictureStore.LOCAL_PICTURE_STORE
+
+/**
  * The table <code>public.users</code>.
  */
 val USERS: Users = Users.USERS
+
+/**
+ * The table <code>public.vote_collaborators</code>.
+ */
+val VOTE_COLLABORATORS: VoteCollaborators = VoteCollaborators.VOTE_COLLABORATORS
+
+/**
+ * The table <code>public.vote_option_external_data</code>.
+ */
+val VOTE_OPTION_EXTERNAL_DATA: VoteOptionExternalData = VoteOptionExternalData.VOTE_OPTION_EXTERNAL_DATA
 
 /**
  * The table <code>public.vote_options</code>.

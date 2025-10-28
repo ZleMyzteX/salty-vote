@@ -5,7 +5,10 @@ package er.codes.saltyvote.jooq
 
 
 import er.codes.saltyvote.jooq.tables.History
+import er.codes.saltyvote.jooq.tables.LocalPictureStore
 import er.codes.saltyvote.jooq.tables.Users
+import er.codes.saltyvote.jooq.tables.VoteCollaborators
+import er.codes.saltyvote.jooq.tables.VoteOptionExternalData
 import er.codes.saltyvote.jooq.tables.VoteOptions
 import er.codes.saltyvote.jooq.tables.VoteSubmissionEntries
 import er.codes.saltyvote.jooq.tables.VoteSubmissions
@@ -38,9 +41,24 @@ open class Public : SchemaImpl(DSL.name("public"), DefaultCatalog.DEFAULT_CATALO
     val HISTORY: History get() = History.HISTORY
 
     /**
+     * The table <code>public.local_picture_store</code>.
+     */
+    val LOCAL_PICTURE_STORE: LocalPictureStore get() = LocalPictureStore.LOCAL_PICTURE_STORE
+
+    /**
      * The table <code>public.users</code>.
      */
     val USERS: Users get() = Users.USERS
+
+    /**
+     * The table <code>public.vote_collaborators</code>.
+     */
+    val VOTE_COLLABORATORS: VoteCollaborators get() = VoteCollaborators.VOTE_COLLABORATORS
+
+    /**
+     * The table <code>public.vote_option_external_data</code>.
+     */
+    val VOTE_OPTION_EXTERNAL_DATA: VoteOptionExternalData get() = VoteOptionExternalData.VOTE_OPTION_EXTERNAL_DATA
 
     /**
      * The table <code>public.vote_options</code>.
@@ -66,7 +84,10 @@ open class Public : SchemaImpl(DSL.name("public"), DefaultCatalog.DEFAULT_CATALO
 
     override fun getTables(): List<Table<*>> = listOf(
         History.HISTORY,
+        LocalPictureStore.LOCAL_PICTURE_STORE,
         Users.USERS,
+        VoteCollaborators.VOTE_COLLABORATORS,
+        VoteOptionExternalData.VOTE_OPTION_EXTERNAL_DATA,
         VoteOptions.VOTE_OPTIONS,
         VoteSubmissionEntries.VOTE_SUBMISSION_ENTRIES,
         VoteSubmissions.VOTE_SUBMISSIONS,

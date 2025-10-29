@@ -529,6 +529,18 @@
 
 				<!-- Sidebar -->
 				<div class="space-y-6">
+					<!-- Vote Now Button - Always visible for creators and collaborators -->
+					<div class="rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 p-6 shadow-xl">
+						<h2 class="mb-2 text-xl font-bold text-white">Ready to vote?</h2>
+						<p class="mb-4 text-sm text-green-100">Cast your vote or see how others have voted</p>
+						<button
+							on:click={() => goto(`/vote/${voteId}`)}
+							class="w-full rounded-lg bg-white px-6 py-3 text-lg font-bold text-green-600 transition-all duration-200 hover:bg-green-50 hover:shadow-lg active:scale-95"
+						>
+							Vote Now →
+						</button>
+					</div>
+
 					<!-- Actions -->
 					{#if vote.isCreator}
 						<div class="rounded-lg bg-gray-800 p-6 shadow-xl">

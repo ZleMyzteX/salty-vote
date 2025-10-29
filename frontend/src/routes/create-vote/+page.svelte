@@ -126,7 +126,6 @@
 					flightNeeded: opt.flightNeeded,
 					airbnbPrice: opt.airbnbPrice,
 					airbnbLink: opt.airbnbLink.trim(),
-					predefinedPosition: index,
 					airbnbData: {
 						description: opt.description.trim(),
 						benefits: opt.benefits.trim(),

@@ -49,7 +49,6 @@ data class AirbnbVoteOptionResponseDto(
     val id: Long,
     val label: String,
     val data: AirbnbVoteOptionData?,
-    val preDefinedPosition: Int? = null,
 )
 
 data class VoteResultsDto(

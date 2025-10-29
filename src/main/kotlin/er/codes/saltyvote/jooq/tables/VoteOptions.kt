@@ -103,11 +103,6 @@ open class VoteOptions(
     val DATA: TableField<VoteOptionsRecord, JSONB?> = createField(DSL.name("data"), SQLDataType.JSONB, this, "")
 
     /**
-     * The column <code>public.vote_options.position</code>.
-     */
-    val POSITION: TableField<VoteOptionsRecord, Int?> = createField(DSL.name("position"), SQLDataType.INTEGER, this, "")
-
-    /**
      * The column <code>public.vote_options.created_at</code>.
      */
     val CREATED_AT: TableField<VoteOptionsRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")

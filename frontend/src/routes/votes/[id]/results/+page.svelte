@@ -156,8 +156,11 @@
 														{#if option.data.travelTime > 0}
 															<span>⏱️ {option.data.travelTime} hours</span>
 														{/if}
+														{#if option.data.airbnbPrice > 0}
+															<span>💰 €{option.data.airbnbPrice.toFixed(2)} (Airbnb)</span>
+														{/if}
 														{#if option.data.totalPrice > 0}
-															<span>💵 €{option.data.totalPrice.toFixed(2)}</span>
+															<span>💵 €{option.data.totalPrice.toFixed(2)} (Total/Person)</span>
 														{/if}
 														{#if option.data.flightNeeded}
 															<span>✈️ Flight</span>
@@ -168,7 +171,9 @@
 												</div>
 											{/if}
 											<!-- External Airbnb Data -->
-											<AirbnbExternalData externalData={option.externalData} optionId={result.optionId} airbnbLink={option.data?.airbnbLink} />
+											{#if option}
+												<AirbnbExternalData externalData={option.externalData} optionId={result.optionId} />
+											{/if}
 										</div>
 									</div>
 									<div class="text-right">

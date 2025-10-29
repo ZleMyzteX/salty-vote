@@ -19,7 +19,6 @@ data class VoteOptions(
     var voteId: Long? = null,
     var label: String? = null,
     var `data`: JSONB? = null,
-    var position: Int? = null,
     var createdAt: OffsetDateTime? = null
 ): Serializable {
 
@@ -56,12 +55,6 @@ data class VoteOptions(
         }
         else if (this.`data` != o.`data`)
             return false
-        if (this.position == null) {
-            if (o.position != null)
-                return false
-        }
-        else if (this.position != o.position)
-            return false
         if (this.createdAt == null) {
             if (o.createdAt != null)
                 return false
@@ -78,7 +71,6 @@ data class VoteOptions(
         result = prime * result + (if (this.voteId == null) 0 else this.voteId.hashCode())
         result = prime * result + (if (this.label == null) 0 else this.label.hashCode())
         result = prime * result + (if (this.`data` == null) 0 else this.`data`.hashCode())
-        result = prime * result + (if (this.position == null) 0 else this.position.hashCode())
         result = prime * result + (if (this.createdAt == null) 0 else this.createdAt.hashCode())
         return result
     }
@@ -90,7 +82,6 @@ data class VoteOptions(
         sb.append(", ").append(voteId)
         sb.append(", ").append(label)
         sb.append(", ").append(`data`)
-        sb.append(", ").append(position)
         sb.append(", ").append(createdAt)
 
         sb.append(")")

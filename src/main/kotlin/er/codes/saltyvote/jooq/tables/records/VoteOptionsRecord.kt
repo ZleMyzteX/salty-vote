@@ -35,13 +35,9 @@ open class VoteOptionsRecord() : UpdatableRecordImpl<VoteOptionsRecord>(VoteOpti
         set(value): Unit = set(3, value)
         get(): JSONB? = get(3) as JSONB?
 
-    open var position: Int?
-        set(value): Unit = set(4, value)
-        get(): Int? = get(4) as Int?
-
     open var createdAt: OffsetDateTime?
-        set(value): Unit = set(5, value)
-        get(): OffsetDateTime? = get(5) as OffsetDateTime?
+        set(value): Unit = set(4, value)
+        get(): OffsetDateTime? = get(4) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -52,12 +48,11 @@ open class VoteOptionsRecord() : UpdatableRecordImpl<VoteOptionsRecord>(VoteOpti
     /**
      * Create a detached, initialised VoteOptionsRecord
      */
-    constructor(id: Long? = null, voteId: Long? = null, label: String? = null, `data`: JSONB? = null, position: Int? = null, createdAt: OffsetDateTime? = null): this() {
+    constructor(id: Long? = null, voteId: Long? = null, label: String? = null, `data`: JSONB? = null, createdAt: OffsetDateTime? = null): this() {
         this.id = id
         this.voteId = voteId
         this.label = label
         this.`data` = `data`
-        this.position = position
         this.createdAt = createdAt
         resetTouchedOnNotNull()
     }
@@ -71,7 +66,6 @@ open class VoteOptionsRecord() : UpdatableRecordImpl<VoteOptionsRecord>(VoteOpti
             this.voteId = value.voteId
             this.label = value.label
             this.`data` = value.`data`
-            this.position = value.position
             this.createdAt = value.createdAt
             resetTouchedOnNotNull()
         }

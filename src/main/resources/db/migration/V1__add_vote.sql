@@ -20,7 +20,6 @@ create table vote_options
     vote_id     bigint not null references votes (id) on delete cascade,
     label       text not null,
     data        jsonb null,
-    position    int null,
     created_at  timestamptz not null default now()
 );
 

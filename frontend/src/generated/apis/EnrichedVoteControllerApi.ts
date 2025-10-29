@@ -144,4 +144,31 @@ export class EnrichedVoteControllerApi extends runtime.BaseAPI {
         return await response.value();
     }
 
+    /**
+     */
+    async triggerRetryFailedScrapesRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{ [key: string]: any; }>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/v1/votes/airbnb/enriched/retry-failed-scrapes`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     */
+    async triggerRetryFailedScrapes(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{ [key: string]: any; }> {
+        const response = await this.triggerRetryFailedScrapesRaw(initOverrides);
+        return await response.value();
+    }
+
 }

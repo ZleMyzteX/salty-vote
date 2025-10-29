@@ -647,6 +647,27 @@
                 }
             }
         },
+        "/api/v1/votes/airbnb/enriched/retry-failed-scrapes": {
+            "get": {
+                "tags": [
+                    "enriched-vote-controller"
+                ],
+                "operationId": "triggerRetryFailedScrapes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/votes/airbnb/enriched/options/{optionId}/status": {
             "get": {
                 "tags": [
@@ -931,10 +952,6 @@
                     },
                     "airbnbLink": {
                         "type": "string"
-                    },
-                    "predefinedPosition": {
-                        "type": "integer",
-                        "format": "int32"
                     },
                     "airbnbData": {
                         "$ref": "#/components/schemas/AirbnbVoteOptionData"
@@ -1331,10 +1348,6 @@
                     },
                     "data": {
                         "$ref": "#/components/schemas/AirbnbVoteOptionData"
-                    },
-                    "preDefinedPosition": {
-                        "type": "integer",
-                        "format": "int32"
                     }
                 },
                 "required": [
@@ -1464,10 +1477,6 @@
                     },
                     "externalData": {
                         "$ref": "#/components/schemas/AirbnbExternalDataDto"
-                    },
-                    "preDefinedPosition": {
-                        "type": "integer",
-                        "format": "int32"
                     }
                 },
                 "required": [

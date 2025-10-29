@@ -33,7 +33,6 @@ class VoteCreatedEvent(
                             id = option.id!!,
                             label = option.label!!,
                             data = option.data,
-                            position = option.position,
                         )
                     },
             ),
@@ -65,6 +64,5 @@ class VoteCreatedEvent(
         val id: Long,
         val label: String,
         val data: JSONB?,
-        val position: Int?,
     )
 }

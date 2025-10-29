@@ -58,12 +58,6 @@ export interface AirbnbVoteOptionEnrichedDto {
      * @memberof AirbnbVoteOptionEnrichedDto
      */
     externalData?: AirbnbExternalDataDto;
-    /**
-     * 
-     * @type {number}
-     * @memberof AirbnbVoteOptionEnrichedDto
-     */
-    preDefinedPosition?: number;
 }
 
 /**
@@ -89,7 +83,6 @@ export function AirbnbVoteOptionEnrichedDtoFromJSONTyped(json: any, ignoreDiscri
         'label': json['label'],
         'data': json['data'] == null ? undefined : AirbnbVoteOptionDataFromJSON(json['data']),
         'externalData': json['externalData'] == null ? undefined : AirbnbExternalDataDtoFromJSON(json['externalData']),
-        'preDefinedPosition': json['preDefinedPosition'] == null ? undefined : json['preDefinedPosition'],
     };
 }
 
@@ -108,7 +101,6 @@ export function AirbnbVoteOptionEnrichedDtoToJSONTyped(value?: AirbnbVoteOptionE
         'label': value['label'],
         'data': AirbnbVoteOptionDataToJSON(value['data']),
         'externalData': AirbnbExternalDataDtoToJSON(value['externalData']),
-        'preDefinedPosition': value['preDefinedPosition'],
     };
 }
 

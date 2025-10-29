@@ -58,7 +58,6 @@ class VoteManagementService(
                         JSONB.valueOf(
                             objectMapper.writeValueAsString(option.getAirbnbData()),
                         ),
-                    position = option.predefinedPosition,
                 )
             voteOptionsDao.insert(voteOption)
             createdOptions.add(voteOption)
@@ -164,12 +163,11 @@ class VoteManagementService(
                     JSONB.valueOf(
                         objectMapper.writeValueAsString(req.getAirbnbData()),
                     ),
-                position = req.predefinedPosition,
             )
 
         voteOptionsDao.insert(option)
 
-        applicationEventPublisher.publishEvent(ScrapeDataEvent(req.getAirbnbData().airbnbLink, option.voteId!!))
+        applicationEventPublisher.publishEvent(ScrapeDataEvent(req.getAirbnbData().airbnbLink, option.id!!))
         return option.id ?: throw ResponseStatusException(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Failed to create option",

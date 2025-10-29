@@ -1,3 +1,4 @@
+.openapi-generator-ignore
 apis/AuthControllerApi.ts
 apis/EnrichedVoteControllerApi.ts
 apis/UserControllerApi.ts

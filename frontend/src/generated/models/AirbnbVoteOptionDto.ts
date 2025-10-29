@@ -89,12 +89,6 @@ export interface AirbnbVoteOptionDto {
     airbnbLink: string;
     /**
      * 
-     * @type {number}
-     * @memberof AirbnbVoteOptionDto
-     */
-    predefinedPosition?: number;
-    /**
-     * 
      * @type {AirbnbVoteOptionData}
      * @memberof AirbnbVoteOptionDto
      */
@@ -139,7 +133,6 @@ export function AirbnbVoteOptionDtoFromJSONTyped(json: any, ignoreDiscriminator:
         'flightNeeded': json['flightNeeded'],
         'airbnbPrice': json['airbnbPrice'],
         'airbnbLink': json['airbnbLink'],
-        'predefinedPosition': json['predefinedPosition'] == null ? undefined : json['predefinedPosition'],
         'airbnbData': AirbnbVoteOptionDataFromJSON(json['airbnbData']),
     };
 }
@@ -165,7 +158,6 @@ export function AirbnbVoteOptionDtoToJSONTyped(value?: AirbnbVoteOptionDto | nul
         'flightNeeded': value['flightNeeded'],
         'airbnbPrice': value['airbnbPrice'],
         'airbnbLink': value['airbnbLink'],
-        'predefinedPosition': value['predefinedPosition'],
         'airbnbData': AirbnbVoteOptionDataToJSON(value['airbnbData']),
     };
 }

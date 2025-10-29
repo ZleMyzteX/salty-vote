@@ -70,6 +70,7 @@
 			} catch {
 				// No existing submission, that's fine
 				if (vote.voteType === 'RANKING') {
+					// Initialize with options in the order returned by backend (random/as-is)
 					rankedOptions = vote.options.map(o => o.id);
 				}
 			}
@@ -324,20 +325,33 @@
 													{#if option.data.country}
 														<span>📍 {option.data.country}</span>
 													{/if}
-												{#if option.data.travelTime > 0}
-													<span>⏱️ {option.data.travelTime} hours</span>
-												{/if}
-												{#if option.data.totalPrice > 0}
-													<span>💵 €{option.data.totalPrice.toFixed(2)}</span>
-												{/if}
-												{#if option.data.flightNeeded}
-													<span>✈️ Flight</span>
-												{:else}
-													<span>🚗 Car</span>
+													{#if option.data.travelTime > 0}
+														<span>⏱️ {option.data.travelTime} hours</span>
+													{/if}
+													{#if option.data.airbnbPrice > 0}
+														<span>💰 €{option.data.airbnbPrice.toFixed(2)} (Airbnb)</span>
+													{/if}
+													{#if option.data.totalPrice > 0}
+														<span>💵 €{option.data.totalPrice.toFixed(2)} (Total/Person)</span>
+													{/if}
+													{#if option.data.flightNeeded}
+														<span>✈️ Flight</span>
+													{:else}
+														<span>🚗 Car</span>
+													{/if}
+												</div>
+												{#if option.data.airbnbLink && !option.externalData}
+													<a
+														href={option.data.airbnbLink}
+														target="_blank"
+														rel="noopener noreferrer"
+														class="inline-block text-blue-400 hover:text-blue-300"
+													>
+														View on Airbnb →
+													</a>
 												{/if}
 											</div>
-										</div>
-									{/if}
+										{/if}
 									<!-- External Airbnb Data -->
 										<AirbnbExternalData externalData={option.externalData} optionId={option.id} />
 									</div>
@@ -393,19 +407,22 @@
 													{#if option.data.country}
 														<span>📍 {option.data.country}</span>
 													{/if}
-												{#if option.data.travelTime > 0}
-													<span>⏱️ {option.data.travelTime} hours</span>
-												{/if}
-												{#if option.data.totalPrice > 0}
-													<span>💵 €{option.data.totalPrice.toFixed(2)}</span>
-												{/if}
-												{#if option.data.flightNeeded}
-													<span>✈️ Flight</span>
-												{:else}
-													<span>🚗 Car</span>
-												{/if}
-											</div>
-											{#if option.data.airbnbLink && !option.externalData}
+													{#if option.data.travelTime > 0}
+														<span>⏱️ {option.data.travelTime} hours</span>
+													{/if}
+													{#if option.data.airbnbPrice > 0}
+														<span>💰 €{option.data.airbnbPrice.toFixed(2)} (Airbnb)</span>
+													{/if}
+													{#if option.data.totalPrice > 0}
+														<span>💵 €{option.data.totalPrice.toFixed(2)} (Total/Person)</span>
+													{/if}
+													{#if option.data.flightNeeded}
+														<span>✈️ Flight</span>
+													{:else}
+														<span>🚗 Car</span>
+													{/if}
+												</div>
+												{#if option.data.airbnbLink && !option.externalData}
 													<a
 														href={option.data.airbnbLink}
 														target="_blank"

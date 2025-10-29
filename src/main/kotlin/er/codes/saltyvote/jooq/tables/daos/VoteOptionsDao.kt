@@ -81,17 +81,6 @@ open class VoteOptionsDao(configuration: Configuration?) : AbstractSpringDAOImpl
     fun fetchByData(vararg values: JSONB): List<er.codes.saltyvote.jooq.tables.pojos.VoteOptions> = fetch(VoteOptions.VOTE_OPTIONS.DATA, *values)
 
     /**
-     * Fetch records that have <code>position BETWEEN lowerInclusive AND
-     * upperInclusive</code>
-     */
-    fun fetchRangeOfPosition(lowerInclusive: Int?, upperInclusive: Int?): List<er.codes.saltyvote.jooq.tables.pojos.VoteOptions> = fetchRange(VoteOptions.VOTE_OPTIONS.POSITION, lowerInclusive, upperInclusive)
-
-    /**
-     * Fetch records that have <code>position IN (values)</code>
-     */
-    fun fetchByPosition(vararg values: Int): List<er.codes.saltyvote.jooq.tables.pojos.VoteOptions> = fetch(VoteOptions.VOTE_OPTIONS.POSITION, *values.toTypedArray())
-
-    /**
      * Fetch records that have <code>created_at BETWEEN lowerInclusive AND
      * upperInclusive</code>
      */

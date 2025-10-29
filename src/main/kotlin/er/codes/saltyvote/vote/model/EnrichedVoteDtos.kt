@@ -22,7 +22,6 @@ data class AirbnbVoteOptionEnrichedDto(
     val label: String,
     val data: AirbnbVoteOptionData?,
     val externalData: AirbnbExternalDataDto?,
-    val preDefinedPosition: Int? = null,
 )
 
 /**

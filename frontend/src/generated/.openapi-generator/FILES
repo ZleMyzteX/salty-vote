@@ -1,4 +1,5 @@
 apis/AuthControllerApi.ts
+apis/EnrichedVoteControllerApi.ts
 apis/UserControllerApi.ts
 apis/VoteCollaboratorControllerApi.ts
 apis/VoteCreationControllerApi.ts
@@ -6,8 +7,10 @@ apis/VoteSubmissionControllerApi.ts
 apis/index.ts
 index.ts
 models/AddCollaboratorDto.ts
+models/AirbnbExternalDataDto.ts
 models/AirbnbVoteOptionData.ts
 models/AirbnbVoteOptionDto.ts
+models/AirbnbVoteOptionEnrichedDto.ts
 models/AirbnbVoteOptionResponseDto.ts
 models/CollaboratorDto.ts
 models/CreateAirbnbVoteDto.ts
@@ -26,6 +29,7 @@ models/VoteSubmissionDto.ts
 models/VoteSubmissionEntryDto.ts
 models/VoteSubmissionResponseDto.ts
 models/VoteWithAirbnbOptionsDto.ts
+models/VoteWithEnrichedAirbnbOptionsDto.ts
 models/VoterRankingDto.ts
 models/index.ts
 runtime.ts

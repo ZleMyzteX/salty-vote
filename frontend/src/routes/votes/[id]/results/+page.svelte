@@ -2,16 +2,17 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import { getVoteSubmissionApi, getVoteApi, handleApiError } from '$lib/apiHelpers';
+	import { getVoteSubmissionApi, getEnrichedVoteApi, handleApiError } from '$lib/apiHelpers';
 	import { isAuthenticated, clearToken } from '$lib/auth';
-	import type { VoteDetailedResultsDto, VoteWithAirbnbOptionsDto } from '../../../../generated/models';
+	import AirbnbExternalData from '$lib/AirbnbExternalData.svelte';
+	import type { VoteDetailedResultsDto, VoteWithEnrichedAirbnbOptionsDto } from '../../../../generated/models';
 
 	// Get vote ID from URL
 	$: voteId = parseInt($page.params.id);
 
 	// State
 	let results: VoteDetailedResultsDto | null = null;
-	let vote: VoteWithAirbnbOptionsDto | null = null;
+	let vote: VoteWithEnrichedAirbnbOptionsDto | null = null;
 	let loading = true;
 	let error = '';
 	let showDetailedResults = false;
@@ -30,12 +31,12 @@
 
 		try {
 			const submissionApi = getVoteSubmissionApi();
-			const voteApi = getVoteApi();
+			const enrichedVoteApi = getEnrichedVoteApi();
 
 			// Load both results and vote details
 			const [resultsData, voteData] = await Promise.all([
 				submissionApi.getDetailedVoteResults({ voteId }),
-				voteApi.getAirbnbVote({ voteId })
+				enrichedVoteApi.getEnrichedAirbnbVote({ voteId })
 			]);
 
 			results = resultsData;
@@ -156,7 +157,7 @@
 															<span>⏱️ {option.data.travelTime} hours</span>
 														{/if}
 														{#if option.data.totalPrice > 0}
-															<span>💵 ${option.data.totalPrice.toFixed(2)}</span>
+															<span>💵 €{option.data.totalPrice.toFixed(2)}</span>
 														{/if}
 														{#if option.data.flightNeeded}
 															<span>✈️ Flight</span>
@@ -166,6 +167,8 @@
 													</div>
 												</div>
 											{/if}
+											<!-- External Airbnb Data -->
+											<AirbnbExternalData externalData={option.externalData} optionId={result.optionId} airbnbLink={option.data?.airbnbLink} />
 										</div>
 									</div>
 									<div class="text-right">
@@ -188,17 +191,6 @@
 										style="width: {result.percentage}%"
 									></div>
 								</div>
-
-								{#if option?.data?.airbnbLink}
-									<a
-										href={option.data.airbnbLink}
-										target="_blank"
-										rel="noopener noreferrer"
-										class="mt-3 inline-block text-sm text-blue-400 hover:text-blue-300"
-									>
-										View on Airbnb →
-									</a>
-								{/if}
 							</div>
 						{/each}
 					</div>

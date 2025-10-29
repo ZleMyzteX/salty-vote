@@ -1,8 +1,10 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './AddCollaboratorDto';
+export * from './AirbnbExternalDataDto';
 export * from './AirbnbVoteOptionData';
 export * from './AirbnbVoteOptionDto';
+export * from './AirbnbVoteOptionEnrichedDto';
 export * from './AirbnbVoteOptionResponseDto';
 export * from './CollaboratorDto';
 export * from './CreateAirbnbVoteDto';
@@ -21,4 +23,5 @@ export * from './VoteSubmissionDto';
 export * from './VoteSubmissionEntryDto';
 export * from './VoteSubmissionResponseDto';
 export * from './VoteWithAirbnbOptionsDto';
+export * from './VoteWithEnrichedAirbnbOptionsDto';
 export * from './VoterRankingDto';

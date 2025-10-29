@@ -616,6 +616,103 @@
                 }
             }
         },
+        "/api/v1/votes/airbnb/enriched/{voteId}": {
+            "get": {
+                "tags": [
+                    "enriched-vote-controller"
+                ],
+                "operationId": "getEnrichedAirbnbVote",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VoteWithEnrichedAirbnbOptionsDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/votes/airbnb/enriched/options/{optionId}/status": {
+            "get": {
+                "tags": [
+                    "enriched-vote-controller"
+                ],
+                "operationId": "getVoteOptionExternalDataStatus",
+                "parameters": [
+                    {
+                        "name": "optionId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/votes/airbnb/enriched/options/{optionId}/picture": {
+            "get": {
+                "tags": [
+                    "enriched-vote-controller"
+                ],
+                "operationId": "getVoteOptionPicture",
+                "parameters": [
+                    {
+                        "name": "optionId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/user": {
             "get": {
                 "tags": [
@@ -1324,6 +1421,112 @@
                     "isCollaborator",
                     "isCreator",
                     "title"
+                ]
+            },
+            "AirbnbExternalDataDto": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "reviewCount": {
+                        "type": "number"
+                    },
+                    "starRating": {
+                        "type": "number"
+                    },
+                    "pictureUrl": {
+                        "type": "string"
+                    },
+                    "hasPictureDownloaded": {
+                        "type": "boolean"
+                    },
+                    "sourceUrl": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "hasPictureDownloaded"
+                ]
+            },
+            "AirbnbVoteOptionEnrichedDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/AirbnbVoteOptionData"
+                    },
+                    "externalData": {
+                        "$ref": "#/components/schemas/AirbnbExternalDataDto"
+                    },
+                    "preDefinedPosition": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "required": [
+                    "id",
+                    "label"
+                ]
+            },
+            "VoteWithEnrichedAirbnbOptionsDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "voteType": {
+                        "type": "string",
+                        "enum": [
+                            "RANKING",
+                            "SIMPLE"
+                        ]
+                    },
+                    "allowMultiVote": {
+                        "type": "boolean"
+                    },
+                    "allowAnonymousVote": {
+                        "type": "boolean"
+                    },
+                    "done": {
+                        "type": "boolean"
+                    },
+                    "isCreator": {
+                        "type": "boolean"
+                    },
+                    "isCollaborator": {
+                        "type": "boolean"
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AirbnbVoteOptionEnrichedDto"
+                        }
+                    }
+                },
+                "required": [
+                    "allowAnonymousVote",
+                    "allowMultiVote",
+                    "done",
+                    "id",
+                    "isCollaborator",
+                    "isCreator",
+                    "options",
+                    "title",
+                    "voteType"
                 ]
             },
             "UserDto": {

@@ -2,15 +2,16 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import { getVoteApi, getVoteSubmissionApi, handleApiError } from '$lib/apiHelpers';
+	import { getEnrichedVoteApi, getVoteSubmissionApi, handleApiError } from '$lib/apiHelpers';
 	import { isAuthenticated, clearToken } from '$lib/auth';
-	import type { VoteWithAirbnbOptionsDto, VoteSubmissionDto, VoteSubmissionEntryDto } from '../../../generated/models';
+	import AirbnbExternalData from '$lib/AirbnbExternalData.svelte';
+	import type { VoteWithEnrichedAirbnbOptionsDto, VoteSubmissionDto, VoteSubmissionEntryDto } from '../../../generated/models';
 
 	// Get vote ID from URL
 	$: voteId = parseInt($page.params.id);
 
 	// State
-	let vote: VoteWithAirbnbOptionsDto | null = null;
+	let vote: VoteWithEnrichedAirbnbOptionsDto | null = null;
 	let loading = true;
 	let error = '';
 	let submitting = false;
@@ -37,10 +38,10 @@
 		error = '';
 
 		try {
-			const voteApi = getVoteApi();
+			const enrichedVoteApi = getEnrichedVoteApi();
 			const submissionApi = getVoteSubmissionApi();
 
-			vote = await voteApi.getAirbnbVote({ voteId });
+			vote = await enrichedVoteApi.getEnrichedAirbnbVote({ voteId });
 
 			// Try to load existing submission
 			try {
@@ -323,30 +324,22 @@
 													{#if option.data.country}
 														<span>📍 {option.data.country}</span>
 													{/if}
-													{#if option.data.travelTime > 0}
-														<span>⏱️ {option.data.travelTime} hours</span>
-													{/if}
-													{#if option.data.totalPrice > 0}
-														<span>💵 ${option.data.totalPrice.toFixed(2)}</span>
-													{/if}
-													{#if option.data.flightNeeded}
-														<span>✈️ Flight</span>
-													{:else}
-														<span>🚗 Car</span>
-													{/if}
-												</div>
-												{#if option.data.airbnbLink}
-													<a
-														href={option.data.airbnbLink}
-														target="_blank"
-														rel="noopener noreferrer"
-														class="inline-block text-blue-400 hover:text-blue-300"
-													>
-														View on Airbnb →
-													</a>
+												{#if option.data.travelTime > 0}
+													<span>⏱️ {option.data.travelTime} hours</span>
+												{/if}
+												{#if option.data.totalPrice > 0}
+													<span>💵 €{option.data.totalPrice.toFixed(2)}</span>
+												{/if}
+												{#if option.data.flightNeeded}
+													<span>✈️ Flight</span>
+												{:else}
+													<span>🚗 Car</span>
 												{/if}
 											</div>
-										{/if}
+										</div>
+									{/if}
+									<!-- External Airbnb Data -->
+										<AirbnbExternalData externalData={option.externalData} optionId={option.id} />
 									</div>
 
 									<div class="cursor-grab text-2xl text-gray-400">
@@ -400,19 +393,19 @@
 													{#if option.data.country}
 														<span>📍 {option.data.country}</span>
 													{/if}
-													{#if option.data.travelTime > 0}
-														<span>⏱️ {option.data.travelTime} hours</span>
-													{/if}
-													{#if option.data.totalPrice > 0}
-														<span>💵 ${option.data.totalPrice.toFixed(2)}</span>
-													{/if}
-													{#if option.data.flightNeeded}
-														<span>✈️ Flight</span>
-													{:else}
-														<span>🚗 Car</span>
-													{/if}
-												</div>
-												{#if option.data.airbnbLink}
+												{#if option.data.travelTime > 0}
+													<span>⏱️ {option.data.travelTime} hours</span>
+												{/if}
+												{#if option.data.totalPrice > 0}
+													<span>💵 €{option.data.totalPrice.toFixed(2)}</span>
+												{/if}
+												{#if option.data.flightNeeded}
+													<span>✈️ Flight</span>
+												{:else}
+													<span>🚗 Car</span>
+												{/if}
+											</div>
+											{#if option.data.airbnbLink && !option.externalData}
 													<a
 														href={option.data.airbnbLink}
 														target="_blank"
@@ -425,6 +418,8 @@
 												{/if}
 											</div>
 										{/if}
+										<!-- External Airbnb Data -->
+										<AirbnbExternalData externalData={option.externalData} optionId={option.id} />
 									</div>
 								</div>
 							</button>

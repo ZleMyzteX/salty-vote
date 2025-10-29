@@ -2,6 +2,24 @@
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
+## Configuration
+
+### API Base URL
+
+The frontend connects to a backend API. The API URL is configured via environment variables.
+
+1. Copy `.env.example` to `.env`:
+   ```sh
+   cp .env.example .env
+   ```
+
+2. Edit `.env` to set your API base URL:
+   ```env
+   VITE_API_BASE_URL=http://localhost:8080
+   ```
+
+The default value is `http://localhost:8080` if not specified.
+
 ## Creating a project
 
 If you're seeing this, you've probably already done this step. Congrats!

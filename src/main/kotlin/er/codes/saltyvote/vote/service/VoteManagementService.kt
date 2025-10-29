@@ -10,6 +10,7 @@ import er.codes.saltyvote.jooq.tables.pojos.Votes
 import er.codes.saltyvote.scrape.model.ScrapeDataEvent
 import er.codes.saltyvote.vote.model.AirbnbVoteOptionDto
 import er.codes.saltyvote.vote.model.CreateAirbnbVoteDto
+import er.codes.saltyvote.vote.model.getAirbnbLink
 import org.jooq.JSONB
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
@@ -60,10 +61,6 @@ class VoteManagementService(
                     position = option.predefinedPosition,
                 )
             voteOptionsDao.insert(voteOption)
-            // TODO: double option.getAirbnbData() fix
-            applicationEventPublisher.publishEvent(
-                ScrapeDataEvent(option.getAirbnbData().airbnbLink, voteOption.voteId!!),
-            )
             createdOptions.add(voteOption)
         }
 
@@ -77,6 +74,14 @@ class VoteManagementService(
                 options = createdOptions,
             ),
         )*/
+
+        createdOptions.forEach {
+            val airbnbLink = it.getAirbnbLink()
+
+            if (airbnbLink != null) {
+                applicationEventPublisher.publishEvent(ScrapeDataEvent(airbnbLink, it.id!!))
+            }
+        }
 
         return voteId
     }

@@ -1,18 +1,22 @@
 package er.codes.saltyvote.scrape.service
 
+import er.codes.saltyvote.jooq.tables.daos.VoteOptionExternalDataDao
+import er.codes.saltyvote.jooq.tables.daos.VoteOptionsDao
 import er.codes.saltyvote.scrape.model.FailedScrapeEvent
 import er.codes.saltyvote.scrape.model.ScrapeDataEvent
+import er.codes.saltyvote.vote.model.getAirbnbLink
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 
 @Service
-class ScrapeRetryService {
+class ScrapeRetryService(
+    private val optionDao: VoteOptionsDao,
+    private val dao: VoteOptionExternalDataDao,
+) {
     private val log = KotlinLogging.logger { }
 
-    // Using ConcurrentHashMap for thread-safe operations
-    // Key: voteOptionId to prevent duplicates
     private val failedScrapes = ConcurrentHashMap<Long, FailedScrapeEvent>()
 
     /**
@@ -62,7 +66,51 @@ class ScrapeRetryService {
     /**
      * Get all failed scrapes that are ready for retry
      */
-    fun getFailedScrapesForRetry(): List<FailedScrapeEvent> = failedScrapes.values.toList()
+    fun getFailedScrapesForRetry(): List<FailedScrapeEvent> {
+        // Get all vote options from the database
+        val allOptions = optionDao.findAll()
+
+        // Process each option to check if it needs scraping
+        allOptions.forEach { option ->
+            val optionId = option.id ?: return@forEach
+
+            // Skip if already in failed scrapes queue
+            if (failedScrapes.containsKey(optionId)) {
+                return@forEach
+            }
+
+            // Extract airbnbLink using extension function
+            val airbnbLink = option.getAirbnbLink() ?: return@forEach
+
+            // Check if external data exists for this option
+            val externalData = dao.fetchByVoteOptionId(optionId).firstOrNull()
+
+            // If no external data exists, add to failed scrapes
+            if (externalData == null) {
+                log.info { "No external data found for vote option $optionId, adding to retry queue" }
+                failedScrapes[optionId] = FailedScrapeEvent(
+                    scrapeDataEvent = ScrapeDataEvent(airbnbLink, optionId),
+                    failureCount = 1,
+                    lastAttempt = LocalDateTime.now(),
+                    lastError = "No external data found",
+                )
+                return@forEach
+            }
+
+            // If external data exists but picture is missing, add to failed scrapes
+            if (externalData.airbnbPictureLocalId == null) {
+                log.info { "Picture missing for vote option $optionId, adding to retry queue" }
+                failedScrapes[optionId] = FailedScrapeEvent(
+                    scrapeDataEvent = ScrapeDataEvent(airbnbLink, optionId),
+                    failureCount = 1,
+                    lastAttempt = LocalDateTime.now(),
+                    lastError = "Picture not downloaded",
+                )
+            }
+        }
+
+        return failedScrapes.values.toList()
+    }
 
     /**
      * Get the current size of the failed scrapes queue

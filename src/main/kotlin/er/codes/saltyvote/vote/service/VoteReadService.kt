@@ -5,12 +5,14 @@ import er.codes.saltyvote.auth.model.UserEntity
 import er.codes.saltyvote.jooq.tables.daos.VoteOptionsDao
 import er.codes.saltyvote.jooq.tables.daos.VotesDao
 import er.codes.saltyvote.vote.model.AirbnbVoteOptionData
+import er.codes.saltyvote.vote.model.AirbnbVoteOptionEnrichedDto
 import er.codes.saltyvote.vote.model.AirbnbVoteOptionResponseDto
 import er.codes.saltyvote.vote.model.VoteDetailDto
 import er.codes.saltyvote.vote.model.VoteListDto
 import er.codes.saltyvote.vote.model.VoteListWithRelationshipDto
 import er.codes.saltyvote.vote.model.VoteOptionDto
 import er.codes.saltyvote.vote.model.VoteWithAirbnbOptionsDto
+import er.codes.saltyvote.vote.model.VoteWithEnrichedAirbnbOptionsDto
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -22,6 +24,7 @@ class VoteReadService(
     private val voteOptionsDao: VoteOptionsDao,
     private val objectMapper: ObjectMapper,
     private val voteCollaboratorService: VoteCollaboratorService,
+    private val voteExternalDataService: VoteExternalDataService,
 ) {
     fun getVoteById(voteId: Long): VoteDetailDto {
         val vote =
@@ -80,6 +83,51 @@ class VoteReadService(
                         id = option.id!!,
                         label = option.label!!,
                         data = airbnbData,
+                        preDefinedPosition = option.position,
+                    )
+                },
+        )
+    }
+
+    /**
+     * Get Airbnb vote with enriched external data (scraped information)
+     */
+    fun getEnrichedAirbnbVoteById(voteId: Long): VoteWithEnrichedAirbnbOptionsDto {
+        val vote =
+            voteDao.fetchOneById(voteId)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Vote not found")
+
+        val currentUser = getCurrentUser()
+        val isCreator = vote.creatorId == currentUser?.id
+        val isCollaborator = currentUser?.let { voteCollaboratorService.isCollaborator(voteId, it.id) } ?: false
+
+        val options = voteOptionsDao.fetchByVoteId(voteId)
+        val optionIds = options.mapNotNull { it.id }
+
+        // Fetch all external data in one go
+        val externalDataMap = voteExternalDataService.getExternalDataForOptions(optionIds)
+
+        return VoteWithEnrichedAirbnbOptionsDto(
+            id = vote.id!!,
+            title = vote.title!!,
+            description = vote.description,
+            voteType = vote.voteType!!,
+            allowMultiVote = vote.allowMulti!!,
+            allowAnonymousVote = vote.allowAnonymous!!,
+            done = vote.done!!,
+            isCreator = isCreator,
+            isCollaborator = isCollaborator,
+            options =
+                options.map { option ->
+                    val airbnbData =
+                        option.data?.let {
+                            objectMapper.readValue(it.data(), AirbnbVoteOptionData::class.java)
+                        }
+                    AirbnbVoteOptionEnrichedDto(
+                        id = option.id!!,
+                        label = option.label!!,
+                        data = airbnbData,
+                        externalData = externalDataMap[option.id],
                         preDefinedPosition = option.position,
                     )
                 },

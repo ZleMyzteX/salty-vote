@@ -2,15 +2,16 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import { getVoteApi, getVoteCollaboratorApi, getUserApi, handleApiError } from '$lib/apiHelpers';
+	import { getEnrichedVoteApi, getVoteApi, getVoteCollaboratorApi, getUserApi, handleApiError } from '$lib/apiHelpers';
 	import { isAuthenticated, clearToken } from '$lib/auth';
-	import type { VoteWithAirbnbOptionsDto, CollaboratorDto, UserDto, AirbnbVoteOptionDto } from '../../../generated/models';
+	import AirbnbExternalData from '$lib/AirbnbExternalData.svelte';
+	import type { VoteWithEnrichedAirbnbOptionsDto, CollaboratorDto, UserDto, AirbnbVoteOptionDto } from '../../../generated/models';
 
 	// Get vote ID from URL
 	$: voteId = parseInt($page.params.id);
 
 	// State
-	let vote: VoteWithAirbnbOptionsDto | null = null;
+	let vote: VoteWithEnrichedAirbnbOptionsDto | null = null;
 	let collaborators: CollaboratorDto[] = [];
 	let allUsers: UserDto[] = [];
 	let loading = true;
@@ -61,13 +62,13 @@
 		error = '';
 
 		try {
-			const voteApi = getVoteApi();
+			const enrichedVoteApi = getEnrichedVoteApi();
 			const collaboratorApi = getVoteCollaboratorApi();
 			const userApi = getUserApi();
 
 			// Load vote, collaborators, and all users in parallel
 			const [voteData, collaboratorsData, usersData] = await Promise.all([
-				voteApi.getAirbnbVote({ voteId }),
+				enrichedVoteApi.getEnrichedAirbnbVote({ voteId }),
 				collaboratorApi.getCollaborators({ voteId }),
 				userApi.getAllUsers()
 			]);
@@ -483,10 +484,10 @@
 															<span>⏱️ {option.data.travelTime} hours</span>
 														{/if}
 														{#if option.data.airbnbPrice > 0}
-															<span>💰 ${option.data.airbnbPrice.toFixed(2)} (Airbnb)</span>
+															<span>💰 €{option.data.airbnbPrice.toFixed(2)} (Airbnb)</span>
 														{/if}
 														{#if option.data.totalPrice > 0}
-															<span>💵 ${option.data.totalPrice.toFixed(2)} (Per Person)</span>
+															<span>💵 €{option.data.totalPrice.toFixed(2)} (Per Person)</span>
 														{/if}
 														{#if option.data.flightNeeded}
 															<span>✈️ Flight</span>
@@ -494,7 +495,7 @@
 															<span>🚗 Car</span>
 														{/if}
 													</div>
-													{#if option.data.airbnbLink}
+                                                    {#if option.data.airbnbLink && !option.externalData}
 														<a
 															href={option.data.airbnbLink}
 															target="_blank"
@@ -506,6 +507,8 @@
 													{/if}
 												</div>
 											{/if}
+											<!-- External Airbnb Data -->
+											<AirbnbExternalData externalData={option.externalData} optionId={option.id} />
 										</div>
 										{#if vote.isCreator || vote.isCollaborator}
 											<button

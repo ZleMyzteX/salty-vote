@@ -9,16 +9,24 @@ import {
 	UserControllerApi,
 	VoteCreationControllerApi,
 	VoteSubmissionControllerApi,
-	VoteCollaboratorControllerApi
+	VoteCollaboratorControllerApi,
+	EnrichedVoteControllerApi
 } from '../generated/apis';
 import { getToken } from './auth';
+
+/**
+ * Get the API base URL from environment variables
+ */
+export function getApiBaseUrl(): string {
+	return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+}
 
 /**
  * Creates API configuration with authentication headers
  */
 function getAuthConfig(): Configuration {
 	const token = getToken();
-	const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+	const apiBaseUrl = getApiBaseUrl();
 
 	return new Configuration({
 		basePath: apiBaseUrl,
@@ -61,6 +69,13 @@ export function getVoteSubmissionApi(): VoteSubmissionControllerApi {
  */
 export function getVoteCollaboratorApi(): VoteCollaboratorControllerApi {
 	return new VoteCollaboratorControllerApi(getAuthConfig());
+}
+
+/**
+ * Creates an authenticated instance of EnrichedVoteControllerApi
+ */
+export function getEnrichedVoteApi(): EnrichedVoteControllerApi {
+	return new EnrichedVoteControllerApi(getAuthConfig());
 }
 
 /**

@@ -168,6 +168,9 @@ jib {
     container {
         mainClass = "er.codes.saltyvote.SaltyVoteApplicationKt"
         ports = listOf("8080")
+
+        jvmFlags = listOf("-Duser.timezone=Europe/Berlin") // change to your timezone, e.g. "Europe/Berlin"
+        environment = mapOf("TZ" to "UTC")       // keep in sync with jvmFlags
     }
     setAllowInsecureRegistries(true)
 }

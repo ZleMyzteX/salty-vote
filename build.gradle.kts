@@ -161,6 +161,12 @@ openApiGenerate {
 jib {
     from {
         image = "gcr.io/distroless/java21-debian12"
+        platforms {
+            platform {
+                architecture = "arm64"
+                os = "linux"
+            }
+        }
     }
     to {
         image = "localhost:5000/saltyvote-backend"

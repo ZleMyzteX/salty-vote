@@ -16,9 +16,10 @@ import { getToken } from './auth';
 
 /**
  * Get the API base URL from environment variables
+ * Falls back to '/api' for production (when Traefik is routing)
  */
 export function getApiBaseUrl(): string {
-	return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+	return import.meta.env.VITE_API_BASE_URL || '';
 }
 
 /**

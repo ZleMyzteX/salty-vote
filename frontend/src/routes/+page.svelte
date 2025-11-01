@@ -117,17 +117,16 @@
 					{:else}
 						<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 							{#each votes as vote}
-								<a
-									href="/votes/{vote.id}"
-									class="group rounded-lg border p-6 transition-all duration-200 hover:bg-gray-700/50
+								<div
+									class="group rounded-lg border p-6 transition-all duration-200
 										{vote.isCreator
 											? 'border-blue-500 bg-blue-900/20'
 											: vote.isCollaborator
 												? 'border-purple-500 bg-purple-900/20'
-												: 'border-gray-600 bg-gray-700/30 hover:border-blue-500'}"
+												: 'border-gray-600 bg-gray-700/30'}"
 								>
-									<div class="mb-2 flex items-start justify-between gap-2">
-										<h3 class="flex-1 text-lg font-semibold text-white group-hover:text-blue-400">
+									<div class="mb-3 flex items-start justify-between gap-2">
+										<h3 class="flex-1 text-lg font-semibold text-white">
 											{vote.title}
 										</h3>
 										<div class="flex flex-col gap-1">
@@ -144,14 +143,25 @@
 										</div>
 									</div>
 									{#if vote.description}
-										<p class="line-clamp-2 text-sm text-gray-400">
+										<p class="line-clamp-2 text-sm text-gray-400 mb-4">
 											{vote.description}
 										</p>
 									{/if}
-									<div class="mt-4 flex items-center text-sm text-blue-400">
-										<span>View vote →</span>
+									<div class="mt-auto flex gap-2">
+										<a
+											href="/votes/{vote.id}"
+											class="flex-1 rounded-lg border border-gray-500 bg-gray-700 px-4 py-2 text-center text-sm font-semibold text-white transition-colors duration-200 hover:bg-gray-600 hover:border-gray-400"
+										>
+                                            + Add
+										</a>
+										<a
+											href="/vote/{vote.id}"
+											class="flex-1 rounded-lg bg-green-600 px-4 py-2 text-center text-sm font-semibold text-white transition-colors duration-200 hover:bg-green-700"
+										>
+											🗳️ Vote
+										</a>
 									</div>
-								</a>
+								</div>
 							{/each}
 						</div>
 					{/if}

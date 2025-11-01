@@ -18,7 +18,9 @@ The frontend connects to a backend API. The API URL is configured via environmen
    VITE_API_BASE_URL=http://localhost:8080
    ```
 
-The default value is `http://localhost:8080` if not specified.
+**Default Behavior:**
+- In production (with Traefik), the default is `/api` which routes to the backend via Traefik's path-based routing
+- For local development, set `VITE_API_BASE_URL=http://localhost:8080` to connect directly to your local backend
 
 ## Creating a project
 

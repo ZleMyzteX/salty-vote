@@ -1,5 +1,6 @@
 package er.codes.saltyvote.scrape
 
+import er.codes.saltyvote.scrape.model.FailureType
 import er.codes.saltyvote.scrape.model.ScrapeDataEvent
 import er.codes.saltyvote.scrape.service.ScrapeRetryService
 import er.codes.saltyvote.scrape.service.ScrapeService
@@ -32,12 +33,20 @@ class ScrapeEventHandler(
                 // Remove from retry queue if it was there from a previous failure
                 retryService.removeSuccessfulScrape(event.voteOptionId)
             } else {
-                log.warn { "Scrape failed for vote option ${event.voteOptionId}: ${result.error}" }
-                retryService.addFailedScrape(event, result.error)
+                // Determine failure type based on error message
+                val failureType =
+                    if (result.error?.contains("picture", ignoreCase = true) == true) {
+                        FailureType.PICTURE_DOWNLOAD_FAILED
+                    } else {
+                        FailureType.FULL_SCRAPE_FAILED
+                    }
+
+                log.warn { "Scrape failed for vote option ${event.voteOptionId}: ${result.error} (type: $failureType)" }
+                retryService.addFailedScrape(event, result.error, failureType)
             }
         } catch (e: Exception) {
             log.error(e) { "Exception while handling scrape event for vote option ${event.voteOptionId}" }
-            retryService.addFailedScrape(event, e.message)
+            retryService.addFailedScrape(event, e.message, FailureType.FULL_SCRAPE_FAILED)
         }
 
         return CompletableFuture.completedFuture(null)

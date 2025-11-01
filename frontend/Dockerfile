@@ -7,6 +7,9 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+
+ENV VITE_API_BASE_URL=''
+
 RUN npm run build
 
 # ---------- Runner Stage ----------
@@ -16,8 +19,8 @@ WORKDIR /app
 
 RUN apk add --no-cache curl && npm install -g serve
 
-COPY --from=build /app/dist ./dist
+COPY --from=build /app/build ./build
 
 EXPOSE 5173
 
-CMD ["serve", "-s", "dist", "-l", "5173"]
+CMD ["serve", "-s", "build", "-l", "5173"]

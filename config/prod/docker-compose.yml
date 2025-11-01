@@ -1,0 +1,94 @@
+services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+    networks:
+      - traefik-network
+
+  sv-backend:
+    image: zlemyztex/saltyvote-backend
+    container_name: sv-backend
+    restart: unless-stopped
+    networks:
+      - monitoring-network
+      - traefik-network
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - sv-database
+
+  sv-frontend:
+    image: zlemyztex/saltyvote-frontend
+    container_name: sv-frontend
+    restart: unless-stopped
+    networks:
+      - monitoring-network
+      - traefik-network
+    depends_on:
+      - sv-backend
+
+  sv-database:
+    image: postgres:17.6
+    container_name: sv-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: saltyvote
+      POSTGRES_PASSWORD: totally-secure-password
+      POSTGRES_DB: saltyvote_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - sv_postgres_data:/var/lib/postgresql/data
+    networks:
+      - monitoring-network
+
+  sv-prometheus:
+    image: prom/prometheus:latest
+    container_name: sv-prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=200h"
+      - "--web.enable-lifecycle"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - monitoring-network
+
+  sv-grafana:
+    image: grafana/grafana:latest
+    container_name: sv-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring-network
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - sv-prometheus
+
+networks:
+  monitoring-network:
+    driver: bridge
+  traefik-network:
+    driver: bridge
+
+volumes:
+  sv_postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

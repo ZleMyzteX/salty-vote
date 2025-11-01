@@ -77,11 +77,8 @@
 			collaborators = collaboratorsData;
 			allUsers = usersData;
 
-			// Redirect to voting page if user is neither creator nor collaborator
-			if (!vote.isCreator && !vote.isCollaborator) {
-				goto(`/vote/${voteId}`);
-				return;
-			}
+			// Allow all authenticated users to view and collaborate
+			// (treating everyone as potential collaborators)
 		} catch (err) {
 			if (err instanceof Response && err.status === 401) {
 				clearToken();
@@ -303,6 +300,14 @@
 				</div>
 				<div class="flex gap-2">
 					<button
+						on:click={loadVoteData}
+						disabled={loading}
+						class="rounded-lg border border-blue-600 bg-blue-600/20 px-4 py-2 text-sm font-semibold text-blue-300 transition-colors duration-200 hover:bg-blue-600/30 disabled:opacity-50"
+						title="Reload vote data"
+					>
+						{loading ? '↻ Reloading...' : '↻ Reload'}
+					</button>
+					<button
 						on:click={handleBack}
 						class="rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-gray-600"
 					>
@@ -318,14 +323,12 @@
 					<div class="rounded-lg bg-gray-800 p-6 shadow-xl">
 						<div class="mb-4 flex items-center justify-between">
 							<h2 class="text-xl font-semibold text-white">Airbnb Options</h2>
-							{#if vote.isCreator || vote.isCollaborator}
-								<button
-									on:click={() => showAddOption = !showAddOption}
-									class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700"
-								>
-									{showAddOption ? 'Cancel' : '+ Add Option'}
-								</button>
-							{/if}
+							<button
+								on:click={() => showAddOption = !showAddOption}
+								class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700"
+							>
+								{showAddOption ? 'Cancel' : '+ Add Option'}
+							</button>
 						</div>
 
 						{#if showAddOption}
@@ -510,14 +513,12 @@
 											<!-- External Airbnb Data -->
 											<AirbnbExternalData externalData={option.externalData} optionId={option.id} />
 										</div>
-										{#if vote.isCreator || vote.isCollaborator}
-											<button
-												on:click={() => handleDeleteOption(option.id)}
-												class="ml-4 rounded-lg bg-red-600 px-3 py-1 text-sm text-white transition-colors duration-200 hover:bg-red-700"
-											>
-												Delete
-											</button>
-										{/if}
+										<button
+											on:click={() => handleDeleteOption(option.id)}
+											class="ml-4 rounded-lg bg-red-600 px-3 py-1 text-sm text-white transition-colors duration-200 hover:bg-red-700"
+										>
+											Delete
+										</button>
 									</div>
 								</div>
 							{:else}

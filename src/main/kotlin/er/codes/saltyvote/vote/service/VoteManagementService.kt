@@ -148,12 +148,13 @@ class VoteManagementService(
     ): Long {
         val currentUser = getCurrentUserOrThrow()
 
+        /* TODO: reenable after using
         if (!voteCollaboratorService.canModifyVote(voteId, currentUser.id)) {
             throw ResponseStatusException(
                 HttpStatus.FORBIDDEN,
                 "Only the creator or collaborators can add options",
             )
-        }
+        }*/
 
         val option =
             VoteOptions(

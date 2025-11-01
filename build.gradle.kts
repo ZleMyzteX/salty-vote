@@ -78,7 +78,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.springframework.modulith:spring-modulith-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
@@ -157,4 +156,18 @@ openApiGenerate {
     generatorName.set("typescript-fetch")
     inputSpec.set("$rootDir/src/main/resources/openapi-doc.json") // path to your OpenAPI spec
     outputDir.set("$rootDir/frontend/src/generated") // output directory
+}
+
+jib {
+    from {
+        image = "gcr.io/distroless/java21-debian12"
+    }
+    to {
+        image = "localhost:5000/saltyvote-backend"
+    }
+    container {
+        mainClass = "er.codes.saltyvote.SaltyVoteApplicationKt"
+        ports = listOf("8080")
+    }
+    setAllowInsecureRegistries(true)
 }

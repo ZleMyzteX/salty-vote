@@ -10,7 +10,7 @@ fun VoteOptions.getAirbnbLink(): String? {
         val dataString = this.data?.data() ?: return null
         val jsonNode = objectMapper.readTree(dataString)
         jsonNode.get("airbnbLink")?.asText()
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }

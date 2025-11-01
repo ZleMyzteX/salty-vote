@@ -3,6 +3,7 @@ package er.codes.saltyvote.scrape.service
 import er.codes.saltyvote.jooq.tables.daos.VoteOptionExternalDataDao
 import er.codes.saltyvote.jooq.tables.daos.VoteOptionsDao
 import er.codes.saltyvote.scrape.model.FailedScrapeEvent
+import er.codes.saltyvote.scrape.model.FailureType
 import er.codes.saltyvote.scrape.model.ScrapeDataEvent
 import er.codes.saltyvote.vote.model.getAirbnbLink
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -25,26 +26,31 @@ class ScrapeRetryService(
     fun addFailedScrape(
         event: ScrapeDataEvent,
         error: String?,
+        failureType: FailureType = FailureType.FULL_SCRAPE_FAILED,
     ) {
         val voteOptionId = event.voteOptionId
 
         failedScrapes.compute(voteOptionId) { _, existing ->
             if (existing == null) {
-                log.warn { "Adding scrape event to retry queue for vote option $voteOptionId (first failure)" }
+                log.warn {
+                    "Adding scrape event to retry queue for vote option $voteOptionId (first failure, type: $failureType)"
+                }
                 FailedScrapeEvent(
                     scrapeDataEvent = event,
                     failureCount = 1,
                     lastAttempt = LocalDateTime.now(),
                     lastError = error,
+                    failureType = failureType,
                 )
             } else {
                 log.warn {
-                    "Incrementing failure count for vote option $voteOptionId (attempt ${existing.failureCount + 1})"
+                    "Incrementing failure count for vote option $voteOptionId (attempt ${existing.failureCount + 1}, type: $failureType)"
                 }
                 existing.copy(
                     failureCount = existing.failureCount + 1,
                     lastAttempt = LocalDateTime.now(),
                     lastError = error,
+                    failureType = failureType,
                 )
             }
         }
@@ -88,24 +94,28 @@ class ScrapeRetryService(
             // If no external data exists, add to failed scrapes
             if (externalData == null) {
                 log.info { "No external data found for vote option $optionId, adding to retry queue" }
-                failedScrapes[optionId] = FailedScrapeEvent(
-                    scrapeDataEvent = ScrapeDataEvent(airbnbLink, optionId),
-                    failureCount = 1,
-                    lastAttempt = LocalDateTime.now(),
-                    lastError = "No external data found",
-                )
+                failedScrapes[optionId] =
+                    FailedScrapeEvent(
+                        scrapeDataEvent = ScrapeDataEvent(airbnbLink, optionId),
+                        failureCount = 1,
+                        lastAttempt = LocalDateTime.now(),
+                        lastError = "No external data found",
+                        failureType = FailureType.FULL_SCRAPE_FAILED,
+                    )
                 return@forEach
             }
 
             // If external data exists but picture is missing, add to failed scrapes
             if (externalData.airbnbPictureLocalId == null) {
                 log.info { "Picture missing for vote option $optionId, adding to retry queue" }
-                failedScrapes[optionId] = FailedScrapeEvent(
-                    scrapeDataEvent = ScrapeDataEvent(airbnbLink, optionId),
-                    failureCount = 1,
-                    lastAttempt = LocalDateTime.now(),
-                    lastError = "Picture not downloaded",
-                )
+                failedScrapes[optionId] =
+                    FailedScrapeEvent(
+                        scrapeDataEvent = ScrapeDataEvent(airbnbLink, optionId),
+                        failureCount = 1,
+                        lastAttempt = LocalDateTime.now(),
+                        lastError = "Picture not downloaded",
+                        failureType = FailureType.PICTURE_DOWNLOAD_FAILED,
+                    )
             }
         }
 

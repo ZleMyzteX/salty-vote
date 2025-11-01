@@ -5,90 +5,54 @@ import er.codes.saltyvote.jooq.tables.daos.LocalPictureStoreDao
 import er.codes.saltyvote.jooq.tables.daos.VoteOptionExternalDataDao
 import er.codes.saltyvote.jooq.tables.pojos.LocalPictureStore
 import er.codes.saltyvote.jooq.tables.pojos.VoteOptionExternalData
-import er.codes.saltyvote.scrape.ScrapeStorageProperties
 import er.codes.saltyvote.scrape.model.ScrapeDataEvent
 import er.codes.saltyvote.scrape.model.ScrapeResult
+import er.codes.saltyvote.scrape.scrapers.ScraperStrategy
 import io.github.oshai.kotlinlogging.KotlinLogging
-import it.skrape.core.htmlDocument
-import it.skrape.fetcher.HttpFetcher
-import it.skrape.fetcher.response
-import it.skrape.fetcher.skrape
-import it.skrape.selects.html5.script
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import org.jooq.JSONB
 import org.springframework.stereotype.Service
-import java.io.File
-import java.net.URL
 
 @Service
 class ScrapeService(
     private val objectMapper: ObjectMapper,
     private val voteOptionExternalDataDao: VoteOptionExternalDataDao,
     private val pictureStoreDao: LocalPictureStoreDao,
-    private val storageProperties: ScrapeStorageProperties,
+    private val scrapers: List<ScraperStrategy>,
 ) {
     private val log = KotlinLogging.logger { }
 
     fun scrape(target: ScrapeDataEvent): ScrapeResult {
-        val data =
-            try {
-                skrape(HttpFetcher) {
-                    request {
-                        url = target.targetUrl
-                        userAgent =
-                            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                    }
-                    response {
-                        htmlDocument {
-                            val scripts =
-                                script {
-                                    findAll {
-                                        this.map { it.html }
-                                    }
-                                }
+        // Select the appropriate scraper based on URL
+        val scraper = scrapers.firstOrNull { it.canHandle(target.targetUrl) }
 
-                            // Search through scripts for StayEmbedData
-                            for (scriptContent in scripts) {
-                                if (scriptContent.contains("StayEmbedData") &&
-                                    scriptContent.contains("\"__typename\":\"StayEmbedData\"")
-                                ) {
-                                    val stayEmbedDataMatch =
-                                        Regex(
-                                            """(\{"__typename":"StayEmbedData"[^}]+\})""",
-                                        ).find(scriptContent)
-                                    if (stayEmbedDataMatch != null) {
-                                        val jsonStr = stayEmbedDataMatch.value
-                                        val json = Json { ignoreUnknownKeys = true }
+        if (scraper == null) {
+            log.warn { "No scraper found for target url ${target.targetUrl}" }
+            return ScrapeResult.failure("No scraper available for this URL")
+        }
 
-                                        return@htmlDocument json.decodeFromString<StayEmbedData>(jsonStr)
-                                    }
-                                }
-                            }
+        log.info { "Using ${scraper.javaClass.simpleName} for ${target.targetUrl}" }
 
-                            null
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                log.error(e) { "Error scraping for target url ${target.targetUrl}" }
-                return ScrapeResult.failure("Scraping failed: ${e.message}")
-            }
+        val data = scraper.scrape(target)
 
         if (data == null) {
-            log.warn { "No StayEmbedData found for target url ${target.targetUrl}" }
-            return ScrapeResult.failure("No StayEmbedData found on page")
+            log.warn { "Scraper failed to extract data for target url ${target.targetUrl}" }
+            return ScrapeResult.failure("Scraper could not extract data from page")
         }
 
         return try {
-            val picture = downloadPicture(target.voteOptionId, data.pictureUrl)
-
-            if (picture == null) {
-                log.error { "Failed to download picture for vote option ${target.voteOptionId}" }
-                return ScrapeResult.failure("Picture download failed")
-            }
-
-            val localPictureStore = LocalPictureStore(localPath = picture.absolutePath)
-            pictureStoreDao.insert(localPictureStore)
+            // Try to download picture using scraper's method
+            val picture = scraper.retryPictureDownload(target.voteOptionId, data.pictureUrl)
+            val pictureLocalId =
+                if (picture != null) {
+                    val localPictureStore = LocalPictureStore(localPath = picture.absolutePath)
+                    pictureStoreDao.insert(localPictureStore)
+                    localPictureStore.id
+                } else {
+                    log.warn {
+                        "Failed to download picture for vote option ${target.voteOptionId}, saving data without picture"
+                    }
+                    null
+                }
 
             voteOptionExternalDataDao.insert(
                 VoteOptionExternalData(
@@ -98,55 +62,80 @@ class ScrapeService(
                     airbnbReviewCount = data.reviewCount.toBigDecimal(),
                     airbnbStarRating = data.starRating.toBigDecimal(),
                     airbnbPictureUrl = data.pictureUrl,
-                    airbnbPictureLocalId = localPictureStore.id,
-                    rawPayload = org.jooq.JSONB.valueOf(objectMapper.writeValueAsString(data)),
+                    airbnbPictureLocalId = pictureLocalId,
+                    rawPayload = JSONB.valueOf(objectMapper.writeValueAsString(data)),
                 ),
             )
 
             log.info { "Successfully scraped and stored data for vote option ${target.voteOptionId}" }
-            ScrapeResult.success()
+
+            // Return success but indicate if picture is missing
+            if (pictureLocalId == null) {
+                ScrapeResult.failure("Data saved but picture download failed")
+            } else {
+                ScrapeResult.success()
+            }
         } catch (e: Exception) {
             log.error(e) { "Error storing scraped data for vote option ${target.voteOptionId}" }
             ScrapeResult.failure("Data storage failed: ${e.message}")
         }
     }
 
-    private fun downloadPicture(
-        voteOptionId: Long,
-        pictureUrl: String,
-    ): File? {
+    fun retryPictureDownload(voteOptionId: Long): ScrapeResult {
         try {
-            // Ensure upload directory exists
-            val downloadPath = storageProperties.getDownloadPath().toFile()
-            if (!downloadPath.exists()) {
-                downloadPath.mkdirs()
-                log.info { "Created airbnbPic directory: ${downloadPath.absolutePath}" }
+            // Fetch existing external data
+            val externalData = voteOptionExternalDataDao.fetchByVoteOptionId(voteOptionId).firstOrNull()
+
+            if (externalData == null) {
+                log.warn { "No external data found for vote option $voteOptionId" }
+                return ScrapeResult.failure("No external data found for this vote option")
             }
 
-            val fileName = "property_$voteOptionId.png"
-            val file = File(downloadPath, fileName)
-
-            log.info { "Downloading image to: ${file.absolutePath}" }
-            URL(pictureUrl).openStream().use { input ->
-                file.outputStream().use { output ->
-                    input.copyTo(output)
+            if (externalData.airbnbPictureLocalId != null) {
+                log.info {
+                    "Vote option $voteOptionId already has a picture (ID: ${externalData.airbnbPictureLocalId})"
                 }
+                return ScrapeResult.success()
             }
-            log.info { "Image downloaded successfully!" }
-            return file
+
+            val pictureUrl = externalData.airbnbPictureUrl
+            if (pictureUrl.isNullOrBlank()) {
+                log.warn { "No picture URL available for vote option $voteOptionId" }
+                return ScrapeResult.failure("No picture URL available")
+            }
+
+            // Find the appropriate scraper based on source URL
+            val sourceUrl = externalData.sourceUrl ?: ""
+            val scraper = scrapers.firstOrNull { it.canHandle(sourceUrl) }
+
+            if (scraper == null) {
+                log.warn { "No scraper found for source URL: $sourceUrl" }
+                return ScrapeResult.failure("No scraper available for this URL")
+            }
+
+            log.info { "Using ${scraper.javaClass.simpleName} to retry picture download for vote option $voteOptionId" }
+
+            // Try to download the picture using scraper's method
+            val picture = scraper.retryPictureDownload(voteOptionId, pictureUrl)
+
+            if (picture == null) {
+                log.error { "Failed to download picture for vote option $voteOptionId" }
+                return ScrapeResult.failure("Picture download failed")
+            }
+
+            // Store the picture
+            val localPictureStore = LocalPictureStore(localPath = picture.absolutePath)
+            pictureStoreDao.insert(localPictureStore)
+
+            // Update the external data with the picture ID
+            externalData.airbnbPictureLocalId = localPictureStore.id
+            voteOptionExternalDataDao.update(externalData)
+
+            log.info { "Successfully downloaded and stored picture for vote option $voteOptionId" }
+            return ScrapeResult.success()
         } catch (e: Exception) {
-            log.error { "Error downloading picture for vote option $voteOptionId" }
-            return null
+            log.error(e) { "Error retrying picture download for vote option $voteOptionId" }
+            return ScrapeResult.failure("Picture download retry failed: ${e.message}")
         }
     }
 }
-
-@Serializable
-data class StayEmbedData(
-    val __typename: String,
-    val id: String,
-    val name: String,
-    val pictureUrl: String,
-    val starRating: Double,
-    val reviewCount: Int,
-)

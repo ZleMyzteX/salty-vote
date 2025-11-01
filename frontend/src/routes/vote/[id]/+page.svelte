@@ -230,12 +230,22 @@
 			</div>
 		{:else if vote}
 			<div class="mb-8">
-				<button
-					on:click={handleBack}
-					class="mb-4 text-gray-400 transition-colors hover:text-white"
-				>
-					← Back
-				</button>
+				<div class="mb-4 flex items-center gap-2">
+					<button
+						on:click={handleBack}
+						class="text-gray-400 transition-colors hover:text-white"
+					>
+						← Back
+					</button>
+					<button
+						on:click={loadVote}
+						disabled={loading}
+						class="rounded-lg border border-blue-600 bg-blue-600/20 px-3 py-1.5 text-sm font-semibold text-blue-300 transition-colors duration-200 hover:bg-blue-600/30 disabled:opacity-50"
+						title="Reload vote data"
+					>
+						{loading ? '↻ Reloading...' : '↻ Reload'}
+					</button>
+				</div>
 
 				<div class="flex items-center gap-3">
 					<h1 class="text-3xl font-bold text-white">{vote.title}</h1>

@@ -1,22 +1,22 @@
 entryPoints:
-    web:
-        address: ":80"
-    websecure:
-        address: ":443"
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
 
 api:
-    dashboard: true
-    insecure: true
+  dashboard: true
+  insecure: true
 
 certificatesResolvers:
-    letsencrypt:
-        acme:
-            email: denis@er.codes
-            storage: /letsencrypt/acme.json
-            httpChallenge:
-                entryPoint: web
+  letsencrypt:
+    acme:
+      email: denis@er.codes
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
 
 providers:
-    file:
-        filename: /etc/traefik/dynamic.yml
-        watch: true
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true

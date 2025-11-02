@@ -160,7 +160,7 @@ openApiGenerate {
 
 jib {
     from {
-        image = "gcr.io/distroless/java21-debian12"
+        image = "eclipse-temurin:21-jre-jammy"
         platforms {
             platform {
                 architecture = "arm64"
@@ -174,9 +174,6 @@ jib {
     container {
         mainClass = "er.codes.saltyvote.SaltyVoteApplicationKt"
         ports = listOf("8080")
-
-        jvmFlags = listOf("-Duser.timezone=Europe/Berlin") // change to your timezone, e.g. "Europe/Berlin"
-        environment = mapOf("TZ" to "UTC")       // keep in sync with jvmFlags
     }
     setAllowInsecureRegistries(true)
 }

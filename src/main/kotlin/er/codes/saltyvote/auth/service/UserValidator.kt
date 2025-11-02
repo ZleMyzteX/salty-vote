@@ -18,13 +18,6 @@ class UserValidator(
             throw IllegalArgumentException("Username already exists!")
         }
 
-        val email = userCreateRequest.email
-        require(email.isNotBlank()) { "Email must not be blank!" }
-        require(email.contains("@")) { "Email must be valid!" }
-        userDao.findByEmail(email)?.let {
-            throw IllegalArgumentException("Email already exists!")
-        }
-
         val password = userCreateRequest.password
         require(password.isNotBlank()) { "Password must not be blank!" }
         require(password.length < 500) { "Password must be less than 500 characters!" }

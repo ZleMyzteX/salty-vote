@@ -24,7 +24,7 @@ class AuthService(
         userValidator.validateNewUserCreateRequest(userCreateRequest)
 
         val passwordHash = passwordEncoder.encode(userCreateRequest.password)
-        val user = userDao.createUser(userCreateRequest.username, passwordHash, userCreateRequest.email)
+        val user = userDao.createUser(userCreateRequest.username, passwordHash)
         applicationEventPublisher.publishEvent(UserRegisteredEvent(user))
         return user
     }

@@ -5,7 +5,6 @@
 	import type { UserCreateRequestDto } from '../../generated/models';
 
 	// Form state
-	let email = '';
 	let username = '';
 	let password = '';
 	let confirmPassword = '';
@@ -21,7 +20,7 @@
 	function validateForm(): boolean {
 		error = '';
 
-		if (!email || !username || !password || !confirmPassword) {
+		if (!username || !password || !confirmPassword) {
 			error = 'All fields are required';
 			return false;
 		}
@@ -33,13 +32,6 @@
 
 		if (password.length < 6) {
 			error = 'Password must be at least 6 characters';
-			return false;
-		}
-
-		// Basic email validation
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(email)) {
-			error = 'Please enter a valid email address';
 			return false;
 		}
 
@@ -62,6 +54,7 @@
 		try {
 			const authApi = getAuthApi();
 
+            const email = "not-used-currently"
 			const userCreateRequest: UserCreateRequestDto = {
 				email,
 				username,
@@ -108,23 +101,6 @@
 			{/if}
 
 			<form on:submit={handleSubmit} class="space-y-6">
-				<div>
-					<label
-						for="email"
-						class="mb-2 block text-sm font-medium text-gray-300"
-					>
-						Email
-					</label>
-					<input
-						id="email"
-						type="email"
-						bind:value={email}
-						placeholder="Enter email..."
-						disabled={loading || success}
-						class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-					/>
-				</div>
-
 				<div>
 					<label
 						for="username"
@@ -186,7 +162,7 @@
 
 				<button
 					type="submit"
-					disabled={loading || success || !email.trim() || !username.trim() || !password.trim() || !confirmPassword.trim()}
+					disabled={loading || success || !username.trim() || !password.trim() || !confirmPassword.trim()}
 					class="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-600"
 				>
 					{#if loading}

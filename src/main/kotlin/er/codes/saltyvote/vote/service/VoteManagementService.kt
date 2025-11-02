@@ -8,8 +8,10 @@ import er.codes.saltyvote.jooq.tables.daos.VotesDao
 import er.codes.saltyvote.jooq.tables.pojos.VoteOptions
 import er.codes.saltyvote.jooq.tables.pojos.Votes
 import er.codes.saltyvote.scrape.model.ScrapeDataEvent
+import er.codes.saltyvote.vote.model.AirbnbVoteOptionData
 import er.codes.saltyvote.vote.model.AirbnbVoteOptionDto
 import er.codes.saltyvote.vote.model.CreateAirbnbVoteDto
+import er.codes.saltyvote.vote.model.UpdateVoteOptionDto
 import er.codes.saltyvote.vote.model.getAirbnbLink
 import org.jooq.JSONB
 import org.springframework.context.ApplicationEventPublisher
@@ -173,6 +175,56 @@ class VoteManagementService(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Failed to create option",
         )
+    }
+
+    @Transactional
+    fun updateVoteOption(
+        voteId: Long,
+        optionId: Long,
+        req: UpdateVoteOptionDto,
+    ) {
+        val currentUser = getCurrentUserOrThrow()
+
+        /* TODO: we do not care atm
+        if (!voteCollaboratorService.canModifyVote(voteId, currentUser.id)) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Only the creator or collaborators can update options",
+            )
+        }*/
+
+        val option =
+            voteOptionsDao.fetchOneById(optionId)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Option not found")
+
+        if (option.voteId != voteId) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Option does not belong to this vote")
+        }
+
+        // Parse existing data to preserve airbnbLink
+        val existingData =
+            option.data?.data()?.let {
+                objectMapper.readValue(it, AirbnbVoteOptionData::class.java)
+            } ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Option data is missing")
+
+        // Create updated data with preserved airbnbLink
+        val updatedData =
+            AirbnbVoteOptionData(
+                description = req.description,
+                benefits = req.benefits,
+                disadvantages = req.disadvantages,
+                travelTime = req.travelTime,
+                totalPrice = req.totalPrice,
+                country = req.country,
+                flightNeeded = req.flightNeeded,
+                airbnbPrice = req.airbnbPrice,
+                airbnbLink = existingData.airbnbLink, // Preserve external data
+            )
+
+        option.label = req.label
+        option.data = JSONB.valueOf(objectMapper.writeValueAsString(updatedData))
+
+        voteOptionsDao.update(option)
     }
 
     @Transactional

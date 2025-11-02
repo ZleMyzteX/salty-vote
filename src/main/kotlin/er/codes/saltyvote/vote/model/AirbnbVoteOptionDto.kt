@@ -25,3 +25,15 @@ data class AirbnbVoteOptionDto(
             airbnbLink,
         )
 }
+
+data class UpdateVoteOptionDto(
+    val label: String,
+    val description: String,
+    val benefits: String,
+    val disadvantages: String,
+    val travelTime: Float,
+    val totalPrice: Float,
+    val country: String,
+    val flightNeeded: Boolean,
+    val airbnbPrice: Float,
+)

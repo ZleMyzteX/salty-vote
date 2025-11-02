@@ -104,6 +104,82 @@
                 }
             }
         },
+        "/api/v1/votes/airbnb/{voteId}/options/{optionId}": {
+            "put": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "updateVoteOption",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "optionId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateVoteOptionDto"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {}
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "vote-creation-controller"
+                ],
+                "operationId": "deleteVoteOption",
+                "parameters": [
+                    {
+                        "name": "voteId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "optionId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {}
+                    }
+                }
+            }
+        },
         "/api/v1/votes/{voteId}/collaborators": {
             "get": {
                 "tags": [
@@ -833,40 +909,6 @@
                     }
                 }
             }
-        },
-        "/api/v1/votes/airbnb/{voteId}/options/{optionId}": {
-            "delete": {
-                "tags": [
-                    "vote-creation-controller"
-                ],
-                "operationId": "deleteVoteOption",
-                "parameters": [
-                    {
-                        "name": "voteId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
-                    {
-                        "name": "optionId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {}
-                    }
-                }
-            }
         }
     },
     "components": {
@@ -1010,6 +1052,52 @@
                     "options",
                     "title",
                     "voteType"
+                ]
+            },
+            "UpdateVoteOptionDto": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "benefits": {
+                        "type": "string"
+                    },
+                    "disadvantages": {
+                        "type": "string"
+                    },
+                    "travelTime": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "totalPrice": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "flightNeeded": {
+                        "type": "boolean"
+                    },
+                    "airbnbPrice": {
+                        "type": "number",
+                        "format": "float"
+                    }
+                },
+                "required": [
+                    "airbnbPrice",
+                    "benefits",
+                    "country",
+                    "description",
+                    "disadvantages",
+                    "flightNeeded",
+                    "label",
+                    "totalPrice",
+                    "travelTime"
                 ]
             },
             "AddCollaboratorDto": {

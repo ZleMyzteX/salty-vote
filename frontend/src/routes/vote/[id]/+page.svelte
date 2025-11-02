@@ -8,7 +8,7 @@
 	import type { VoteWithEnrichedAirbnbOptionsDto, VoteSubmissionDto, VoteSubmissionEntryDto } from '../../../generated/models';
 
 	// Get vote ID from URL
-	$: voteId = parseInt($page.params.id);
+	$: voteId = parseInt(String($page.params.id));
 
 	// State
 	let vote: VoteWithEnrichedAirbnbOptionsDto | null = null;
@@ -24,6 +24,11 @@
 	// Drag and drop state for ranking
 	let draggedItem: number | null = null;
 	let rankedOptions: number[] = []; // Array of option IDs in ranked order
+
+	// Touch handling state for mobile
+	let touchStartY: number = 0;
+	let touchedItem: number | null = null;
+	let isDraggingFromHandle: boolean = false;
 
 	onMount(() => {
 		if (!isAuthenticated()) {
@@ -130,7 +135,7 @@
 			// Redirect after a short delay
 			setTimeout(() => {
 				goto(`/votes/${voteId}/results`);
-			}, 1500);
+			}, 120);
 
 		} catch (err) {
 			error = await handleApiError(err);
@@ -199,10 +204,60 @@
 	function handleBack() {
 		goto('/');
 	}
+
+	// Touch handlers for mobile - only allow dragging from handle
+	function handleTouchStart(event: TouchEvent, optionId: number) {
+		// Don't start dragging from main container touch
+		isDraggingFromHandle = false;
+	}
+
+	function handleHandleTouchStart(event: TouchEvent, optionId: number) {
+		event.stopPropagation();
+		touchStartY = event.touches[0].clientY;
+		touchedItem = optionId;
+		draggedItem = optionId; // Show visual feedback
+		isDraggingFromHandle = true;
+	}
+
+	function handleTouchMove(event: TouchEvent) {
+		if (touchedItem === null || !isDraggingFromHandle) return;
+
+		event.preventDefault(); // Prevent scrolling while dragging
+
+		const touch = event.touches[0];
+		const deltaY = touch.clientY - touchStartY;
+
+		// Determine which item we're hovering over
+		const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+		const targetElement = elements.find(el => el.hasAttribute('data-option-id'));
+
+		if (targetElement) {
+			const targetId = parseInt(targetElement.getAttribute('data-option-id') || '0');
+			if (targetId && targetId !== touchedItem) {
+				const touchedIndex = rankedOptions.indexOf(touchedItem);
+				const targetIndex = rankedOptions.indexOf(targetId);
+
+				if (touchedIndex !== -1 && targetIndex !== -1) {
+					const newRankedOptions = [...rankedOptions];
+					newRankedOptions.splice(touchedIndex, 1);
+					newRankedOptions.splice(targetIndex, 0, touchedItem);
+					rankedOptions = newRankedOptions;
+					touchStartY = touch.clientY; // Update start position
+				}
+			}
+		}
+	}
+
+	function handleTouchEnd() {
+		touchedItem = null;
+		draggedItem = null;
+		touchStartY = 0;
+		isDraggingFromHandle = false;
+	}
 </script>
 
-<div class="min-h-screen bg-gray-900 py-8">
-	<div class="mx-auto max-w-4xl px-4">
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-4 sm:py-8">
+	<div class="mx-auto max-w-4xl px-3 sm:px-4">
 		{#if loading}
 			<div class="flex items-center justify-center py-20">
 				<div class="text-center">
@@ -215,78 +270,83 @@
 						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 					</svg>
-					<p class="mt-4 text-gray-400">Loading vote...</p>
+					<p class="mt-4 text-gray-300">Loading vote...</p>
 				</div>
 			</div>
 		{:else if error}
-			<div class="rounded-lg border border-red-800 bg-red-900/20 p-6 text-center">
-				<p class="text-red-400">{error}</p>
+			<div class="rounded-2xl border-2 border-red-800 bg-red-900/30 p-8 text-center backdrop-blur-sm">
+				<div class="mb-3 text-4xl">⚠️</div>
+				<p class="mb-4 text-lg font-semibold text-red-400">{error}</p>
 				<button
 					on:click={handleBack}
-					class="mt-4 rounded-lg bg-gray-700 px-4 py-2 text-white hover:bg-gray-600"
+					class="rounded-xl bg-gray-700 px-6 py-2 font-semibold text-white transition-all hover:bg-gray-600"
 				>
 					Go Back
 				</button>
 			</div>
 		{:else if vote}
-			<div class="mb-8">
-				<div class="mb-4 flex items-center gap-2">
+			<div class="mb-6 sm:mb-8">
+				<div class="mb-3 sm:mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
 					<button
 						on:click={handleBack}
-						class="text-gray-400 transition-colors hover:text-white"
+						class="text-gray-300 transition-colors hover:text-white text-sm sm:text-base"
 					>
 						← Back
 					</button>
 					<button
 						on:click={loadVote}
 						disabled={loading}
-						class="rounded-lg border border-blue-600 bg-blue-600/20 px-3 py-1.5 text-sm font-semibold text-blue-300 transition-colors duration-200 hover:bg-blue-600/30 disabled:opacity-50"
+						class="rounded-xl border-2 border-blue-600 bg-blue-600/20 px-3 py-1.5 text-xs sm:text-sm font-semibold text-blue-300 backdrop-blur-sm transition-all duration-300 hover:bg-blue-600/30 disabled:opacity-50 self-start"
 						title="Reload vote data"
 					>
 						{loading ? '↻ Reloading...' : '↻ Reload'}
 					</button>
 				</div>
 
-				<div class="flex items-center gap-3">
-					<h1 class="text-3xl font-bold text-white">{vote.title}</h1>
+				<div class="flex flex-wrap items-center gap-2 sm:gap-3">
+					<h1 class="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-2xl sm:text-3xl font-extrabold text-transparent">{vote.title}</h1>
 					{#if vote.done}
-						<span class="rounded-full bg-green-900/30 px-3 py-1 text-sm font-medium text-green-400">
+						<span class="flex items-center gap-1 rounded-full bg-green-900/40 px-2.5 sm:px-3 py-1 text-xs sm:text-sm font-bold text-green-400 shadow-lg">
+							<svg class="h-3 w-3 sm:h-4 sm:w-4" fill="currentColor" viewBox="0 0 20 20">
+								<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+							</svg>
 							Completed
 						</span>
 					{/if}
 				</div>
 
 				{#if vote.description}
-					<p class="mt-2 text-gray-400">{vote.description}</p>
+					<p class="mt-2 text-sm sm:text-base text-gray-300">{vote.description}</p>
 				{/if}
 
-				<div class="mt-4 flex flex-wrap gap-2 text-sm">
-					<span class="rounded bg-gray-700 px-2 py-1 text-gray-300">
+				<div class="mt-3 sm:mt-4 flex flex-wrap gap-2 text-xs sm:text-sm">
+					<span class="rounded-lg bg-gray-700/50 px-2.5 sm:px-3 py-1.5 font-medium text-gray-300">
 						{vote.voteType === 'RANKING' ? '📊 Ranking Vote' : '✅ Simple Vote'}
 					</span>
 					{#if vote.allowMultiVote}
-						<span class="rounded bg-gray-700 px-2 py-1 text-gray-300">Multiple selections allowed</span>
+						<span class="rounded-lg bg-gray-700/50 px-2.5 sm:px-3 py-1.5 font-medium text-gray-300">Multiple selections allowed</span>
 					{/if}
 				</div>
 			</div>
 
 			{#if submitSuccess}
-				<div class="mb-6 rounded-lg border border-green-800 bg-green-900/20 p-4 text-center">
-					<p class="text-green-400">✅ Vote submitted successfully! Redirecting to results...</p>
+				<div class="mb-6 rounded-xl border-2 border-green-800 bg-green-900/30 p-4 sm:p-6 text-center backdrop-blur-sm">
+					<div class="mb-2 text-3xl sm:text-4xl">✅</div>
+					<p class="font-semibold text-green-400 text-sm sm:text-base">Vote submitted successfully! Redirecting to results...</p>
 				</div>
 			{/if}
 
-			<div class="rounded-lg bg-gray-800 p-8 shadow-xl">
+			<div class="rounded-2xl border-2 border-gray-700 bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-4 sm:p-6 md:p-8 shadow-2xl backdrop-blur-sm">
 				{#if vote.voteType === 'RANKING'}
-					<div class="mb-6">
-						<h2 class="mb-2 text-xl font-semibold text-white">Rank Your Preferences</h2>
-						<p class="text-sm text-gray-400">
-							Drag to reorder or use the arrow buttons. Top option is your #1 choice.
+					<div class="mb-4 sm:mb-6">
+						<h2 class="mb-2 text-lg sm:text-xl font-bold text-white">Rank Your Preferences</h2>
+						<p class="text-xs sm:text-sm text-gray-300">
+							Touch and drag to reorder on mobile, or use the arrow buttons. Top option is your #1 choice.
 						</p>
 					</div>
 
 					<div class="space-y-3">
-						{#each rankedOptions as optionId, index}
+						{#each rankedOptions as optionId, index (optionId)}
 							{@const option = vote.options.find(o => o.id === optionId)}
 							{#if option}
 								<div
@@ -294,60 +354,66 @@
 									on:dragstart={() => handleDragStart(optionId)}
 									on:dragover={(e) => handleDragOver(e, optionId)}
 									on:dragend={handleDragEnd}
-									class="flex items-start gap-4 rounded-lg border-2 border-gray-600 bg-gray-700 p-4 transition-all hover:border-blue-500"
-									class:opacity-50={draggedItem === optionId}
+									on:touchstart={(e) => handleTouchStart(e, optionId)}
+									on:touchmove={handleTouchMove}
+									on:touchend={handleTouchEnd}
+									data-option-id={optionId}
+									class="flex items-start gap-2 sm:gap-4 rounded-xl border-2 border-gray-600 bg-gradient-to-br from-gray-700/50 to-gray-800/50 p-3 sm:p-4 backdrop-blur-sm transition-all hover:border-blue-500 hover:shadow-lg"
+									class:opacity-50={draggedItem === optionId && !isDraggingFromHandle}
+									class:scale-105={touchedItem === optionId && isDraggingFromHandle}
+									class:shadow-blue-500={touchedItem === optionId && isDraggingFromHandle}
 								>
 									<div class="flex flex-col gap-1">
 										<button
 											on:click={() => moveUp(optionId)}
 											disabled={index === 0}
-											class="rounded bg-gray-600 px-2 py-1 text-xs text-white hover:bg-gray-500 disabled:opacity-30"
+											class="rounded-lg bg-gray-600 px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs font-semibold text-white transition-all hover:bg-gray-500 disabled:opacity-30 min-w-[28px] sm:min-w-[32px]"
 										>
 											▲
 										</button>
 										<button
 											on:click={() => moveDown(optionId)}
 											disabled={index === rankedOptions.length - 1}
-											class="rounded bg-gray-600 px-2 py-1 text-xs text-white hover:bg-gray-500 disabled:opacity-30"
+											class="rounded-lg bg-gray-600 px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs font-semibold text-white transition-all hover:bg-gray-500 disabled:opacity-30 min-w-[28px] sm:min-w-[32px]"
 										>
 											▼
 										</button>
 									</div>
 
-									<div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 font-bold text-white">
+									<div class="flex h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-sm sm:text-base font-bold text-white shadow-lg">
 										#{index + 1}
 									</div>
 
-									<div class="flex-1">
-										<h3 class="text-lg font-medium text-white">{option.label}</h3>
+									<div class="flex-1 min-w-0">
+										<h3 class="text-base sm:text-lg font-semibold text-white break-words">{option.label}</h3>
 										{#if option.data}
-											<div class="mt-1 space-y-1 text-sm text-gray-400">
+											<div class="mt-1 space-y-1 text-xs sm:text-sm text-gray-300">
 												{#if option.data.description}
-													<p>{option.data.description}</p>
+													<p class="break-words">{option.data.description}</p>
 												{/if}
 												{#if option.data.benefits}
-													<p class="text-green-400">✓ {option.data.benefits}</p>
+													<p class="text-green-400 break-words">✓ {option.data.benefits}</p>
 												{/if}
 												{#if option.data.disadvantages}
-													<p class="text-red-400">✗ {option.data.disadvantages}</p>
+													<p class="text-red-400 break-words">✗ {option.data.disadvantages}</p>
 												{/if}
-												<div class="flex flex-wrap gap-3">
+												<div class="flex flex-wrap gap-2 sm:gap-3">
 													{#if option.data.country}
-														<span>📍 {option.data.country}</span>
+														<span class="whitespace-nowrap">📍 {option.data.country}</span>
 													{/if}
 													{#if option.data.travelTime > 0}
-														<span>⏱️ {option.data.travelTime} hours</span>
+														<span class="whitespace-nowrap">⏱️ {option.data.travelTime} hours</span>
 													{/if}
 													{#if option.data.airbnbPrice > 0}
-														<span>💰 €{option.data.airbnbPrice.toFixed(2)} (Airbnb)</span>
+														<span class="whitespace-nowrap">💰 €{option.data.airbnbPrice.toFixed(2)} (Airbnb)</span>
 													{/if}
 													{#if option.data.totalPrice > 0}
-														<span>💵 €{option.data.totalPrice.toFixed(2)} (Total/Person)</span>
+														<span class="whitespace-nowrap">💵 €{option.data.totalPrice.toFixed(2)} (Total/Person)</span>
 													{/if}
 													{#if option.data.flightNeeded}
-														<span>✈️ Flight</span>
+														<span class="whitespace-nowrap">✈️ Flight</span>
 													{:else}
-														<span>🚗 Car</span>
+														<span class="whitespace-nowrap">🚗 Car</span>
 													{/if}
 												</div>
 												{#if option.data.airbnbLink && !option.externalData}
@@ -355,7 +421,7 @@
 														href={option.data.airbnbLink}
 														target="_blank"
 														rel="noopener noreferrer"
-														class="inline-block text-blue-400 hover:text-blue-300"
+														class="inline-block text-blue-400 hover:text-blue-300 break-all"
 													>
 														View on Airbnb →
 													</a>
@@ -366,7 +432,13 @@
 										<AirbnbExternalData externalData={option.externalData} optionId={option.id} />
 									</div>
 
-									<div class="cursor-grab text-2xl text-gray-400">
+									<div
+										on:touchstart={(e) => handleHandleTouchStart(e, optionId)}
+										class="cursor-grab active:cursor-grabbing text-xl sm:text-2xl text-gray-400 px-2 py-4 -mr-2 select-none touch-manipulation"
+										role="button"
+										tabindex="0"
+										aria-label="Drag to reorder"
+									>
 										⋮⋮
 									</div>
 								</div>
@@ -375,23 +447,23 @@
 					</div>
 				{:else}
 					<!-- Simple Vote -->
-					<div class="mb-6">
-						<h2 class="mb-2 text-xl font-semibold text-white">Select Your Choice{vote.allowMultiVote ? '(s)' : ''}</h2>
-						<p class="text-sm text-gray-400">
+					<div class="mb-4 sm:mb-6">
+						<h2 class="mb-2 text-lg sm:text-xl font-bold text-white">Select Your Choice{vote.allowMultiVote ? '(s)' : ''}</h2>
+						<p class="text-xs sm:text-sm text-gray-300">
 							{vote.allowMultiVote ? 'Select one or more options' : 'Select one option'}
 						</p>
 					</div>
 
 					<div class="space-y-3">
-						{#each vote.options as option}
+						{#each vote.options as option (option.id)}
 							<button
 								type="button"
 								on:click={() => toggleSelection(option.id)}
-								class="w-full rounded-lg border-2 p-4 text-left transition-all {selections.has(option.id) ? 'border-blue-500 bg-blue-900 bg-opacity-20' : 'border-gray-600 bg-gray-700 hover:border-blue-400'}"
+								class="w-full rounded-xl border-2 p-3 sm:p-4 text-left transition-all {selections.has(option.id) ? 'border-blue-500 bg-gradient-to-br from-blue-900/40 to-blue-800/30 shadow-lg shadow-blue-500/20' : 'border-gray-600 bg-gradient-to-br from-gray-700/50 to-gray-800/50 hover:border-blue-400 hover:shadow-lg'}"
 							>
 								<div class="flex items-start gap-3">
 									<div
-										class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 transition-all {selections.has(option.id) ? 'border-blue-500 bg-blue-500' : 'border-gray-400'}"
+										class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 transition-all {selections.has(option.id) ? 'border-blue-500 bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg' : 'border-gray-400'}"
 									>
 										{#if selections.has(option.id)}
 											<svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -400,36 +472,36 @@
 										{/if}
 									</div>
 
-									<div class="flex-1">
-										<h3 class="text-lg font-medium text-white">{option.label}</h3>
+									<div class="flex-1 min-w-0">
+										<h3 class="text-base sm:text-lg font-semibold text-white break-words">{option.label}</h3>
 										{#if option.data}
-											<div class="mt-1 space-y-1 text-sm text-gray-400">
+											<div class="mt-1 space-y-1 text-xs sm:text-sm text-gray-300">
 												{#if option.data.description}
-													<p>{option.data.description}</p>
+													<p class="break-words">{option.data.description}</p>
 												{/if}
 												{#if option.data.benefits}
-													<p class="text-green-400">✓ {option.data.benefits}</p>
+													<p class="text-green-400 break-words">✓ {option.data.benefits}</p>
 												{/if}
 												{#if option.data.disadvantages}
-													<p class="text-red-400">✗ {option.data.disadvantages}</p>
+													<p class="text-red-400 break-words">✗ {option.data.disadvantages}</p>
 												{/if}
-												<div class="flex flex-wrap gap-3">
+												<div class="flex flex-wrap gap-2 sm:gap-3">
 													{#if option.data.country}
-														<span>📍 {option.data.country}</span>
+														<span class="whitespace-nowrap">📍 {option.data.country}</span>
 													{/if}
 													{#if option.data.travelTime > 0}
-														<span>⏱️ {option.data.travelTime} hours</span>
+														<span class="whitespace-nowrap">⏱️ {option.data.travelTime} hours</span>
 													{/if}
 													{#if option.data.airbnbPrice > 0}
-														<span>💰 €{option.data.airbnbPrice.toFixed(2)} (Airbnb)</span>
+														<span class="whitespace-nowrap">💰 €{option.data.airbnbPrice.toFixed(2)} (Airbnb)</span>
 													{/if}
 													{#if option.data.totalPrice > 0}
-														<span>💵 €{option.data.totalPrice.toFixed(2)} (Total/Person)</span>
+														<span class="whitespace-nowrap">💵 €{option.data.totalPrice.toFixed(2)} (Total/Person)</span>
 													{/if}
 													{#if option.data.flightNeeded}
-														<span>✈️ Flight</span>
+														<span class="whitespace-nowrap">✈️ Flight</span>
 													{:else}
-														<span>🚗 Car</span>
+														<span class="whitespace-nowrap">🚗 Car</span>
 													{/if}
 												</div>
 												{#if option.data.airbnbLink && !option.externalData}
@@ -437,7 +509,7 @@
 														href={option.data.airbnbLink}
 														target="_blank"
 														rel="noopener noreferrer"
-														class="inline-block text-blue-400 hover:text-blue-300"
+														class="inline-block text-blue-400 hover:text-blue-300 break-all"
 														on:click|stopPropagation
 													>
 														View on Airbnb →
@@ -457,7 +529,7 @@
 				<button
 					on:click={handleSubmit}
 					disabled={submitting || submitSuccess}
-					class="mt-8 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-600"
+					class="mt-6 sm:mt-8 w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 sm:py-4 text-base sm:text-lg font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
 				>
 					{#if submitting}
 						<span class="inline-flex items-center">
@@ -482,4 +554,3 @@
 		{/if}
 	</div>
 </div>
-

@@ -1,4 +1,3 @@
-.openapi-generator-ignore
 apis/AuthControllerApi.ts
 apis/EnrichedVoteControllerApi.ts
 apis/UserControllerApi.ts
@@ -17,6 +16,7 @@ models/CollaboratorDto.ts
 models/CreateAirbnbVoteDto.ts
 models/GatePasswordDto.ts
 models/IndividualVoterDto.ts
+models/UpdateVoteOptionDto.ts
 models/UserCreateRequestDto.ts
 models/UserDetailDto.ts
 models/UserDto.ts

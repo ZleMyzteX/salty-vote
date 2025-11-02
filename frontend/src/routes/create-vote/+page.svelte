@@ -22,7 +22,7 @@
 	// Form state
 	let title = '';
 	let description = '';
-	let voteType: 'SIMPLE' | 'RANKING' = 'RANKING';
+	let voteType: 'RANKING';
 	let allowMultiVote = false;
 	let allowAnonymousVote = false;
 	let options: VoteOption[] = [
@@ -185,25 +185,27 @@
 	}
 </script>
 
-<div class="min-h-screen bg-gray-900 py-8">
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8">
 	<div class="mx-auto max-w-6xl px-4">
 		<!-- Header -->
 		<div class="mb-8 flex items-center justify-between">
 			<div>
-				<h1 class="text-3xl font-bold text-white">🏠 Create Airbnb Vote</h1>
-				<p class="mt-1 text-gray-400">Compare vacation rentals and let others help decide</p>
+				<h1 class="mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-4xl font-extrabold text-transparent">
+					Create Airbnb Vote
+				</h1>
+				<p class="mt-1 text-gray-300">Compare vacation rentals and let others help decide</p>
 			</div>
 			<div class="flex gap-2">
 				<button
 					type="button"
 					on:click={handleBack}
-					class="rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-gray-600"
+					class="rounded-xl border-2 border-gray-600 bg-gray-800/50 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-gray-500 hover:bg-gray-700/50"
 				>
-					Back
+					← Back
 				</button>
 				<button
 					on:click={handleLogout}
-					class="rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-gray-600"
+					class="rounded-xl border-2 border-gray-600 bg-gray-800/50 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-gray-500 hover:bg-gray-700/50"
 				>
 					Logout
 				</button>
@@ -211,27 +213,29 @@
 		</div>
 
 		<!-- Main Form Card -->
-		<div class="rounded-lg bg-gray-800 p-8 shadow-xl">
+		<div class="rounded-2xl border-2 border-gray-700 bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-8 shadow-2xl backdrop-blur-sm">
 			{#if success}
 				<div
-					class="mb-6 rounded-lg border border-green-800 bg-green-900/20 p-3 text-center text-sm text-green-400"
+					class="mb-6 rounded-xl border-2 border-green-800 bg-green-900/30 p-4 text-center backdrop-blur-sm"
 				>
-					✅ Vote created successfully! Redirecting...
+					<div class="mb-2 text-3xl">✅</div>
+					<p class="text-sm font-semibold text-green-400">Vote created successfully! Redirecting...</p>
 				</div>
 			{/if}
 
 			{#if error}
 				<div
-					class="mb-6 rounded-lg border border-red-800 bg-red-900/20 p-3 text-center text-sm text-red-400"
+					class="mb-6 rounded-xl border-2 border-red-800 bg-red-900/30 p-4 text-center backdrop-blur-sm"
 				>
-					{error}
+					<div class="mb-2 text-3xl">⚠️</div>
+					<p class="text-sm font-semibold text-red-400">{error}</p>
 				</div>
 			{/if}
 
 			<form on:submit={handleSubmit} class="space-y-6">
 				<!-- Title -->
 				<div>
-					<label for="title" class="mb-2 block text-sm font-medium text-gray-300">
+					<label for="title" class="mb-2 block text-sm font-semibold text-gray-300">
 						Vote Title *
 					</label>
 					<input
@@ -240,13 +244,13 @@
 						bind:value={title}
 						placeholder="e.g., Where should we go for our next vacation?"
 						disabled={loading}
-						class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+						class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-3 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 					/>
 				</div>
 
 				<!-- Description -->
 				<div>
-					<label for="description" class="mb-2 block text-sm font-medium text-gray-300">
+					<label for="description" class="mb-2 block text-sm font-semibold text-gray-300">
 						Description (optional)
 					</label>
 					<textarea
@@ -255,71 +259,47 @@
 						placeholder="Add more details about this vote..."
 						disabled={loading}
 						rows="3"
-						class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+						class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-3 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 					></textarea>
 				</div>
 
 				<div class="grid gap-6 md:grid-cols-2">
 					<!-- Vote Type -->
 					<div>
-						<label for="voteType" class="mb-2 block text-sm font-medium text-gray-300">
+						<label for="voteType" class="mb-2 block text-sm font-semibold text-gray-300">
 							Vote Type *
 						</label>
 						<select
 							id="voteType"
 							bind:value={voteType}
 							disabled={loading}
-							class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+							class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-3 text-white transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 						>
 							<option value="RANKING">Ranking Vote</option>
-							<option value="SIMPLE">Simple Vote</option>
 						</select>
-					</div>
-
-					<!-- Checkboxes -->
-					<div class="space-y-3 rounded-lg bg-gray-700/50 p-4">
-						<label class="flex cursor-pointer items-center">
-							<input
-								type="checkbox"
-								bind:checked={allowMultiVote}
-								disabled={loading}
-								class="h-4 w-4 cursor-pointer rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
-							/>
-							<span class="ml-3 text-sm text-gray-300">Allow multiple votes</span>
-						</label>
-
-						<label class="flex cursor-pointer items-center">
-							<input
-								type="checkbox"
-								bind:checked={allowAnonymousVote}
-								disabled={loading}
-								class="h-4 w-4 cursor-pointer rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
-							/>
-							<span class="ml-3 text-sm text-gray-300">Allow anonymous voting</span>
-						</label>
 					</div>
 				</div>
 
 				<!-- Airbnb Options Section -->
-				<div class="rounded-lg bg-gray-700/30 p-6">
+				<div class="rounded-xl border-2 border-gray-700 bg-gray-700/20 p-6 backdrop-blur-sm">
 					<div class="mb-4 flex items-center justify-between">
 						<div>
-							<h3 class="text-lg font-medium text-gray-300">Airbnb Options *</h3>
+							<h3 class="text-lg font-bold text-white">Airbnb Options *</h3>
 							<p class="text-xs text-gray-400">Add at least 2 options for comparison</p>
 						</div>
 					</div>
 
 					<div class="space-y-6">
 						{#each options as option, index}
-							<div class="rounded-lg border border-gray-600 bg-gray-800 p-6">
+							<div class="rounded-xl border-2 border-gray-600 bg-gradient-to-br from-gray-800/60 to-gray-900/60 p-6 backdrop-blur-sm">
 								<div class="mb-4 flex items-center justify-between">
-									<h4 class="font-medium text-white">Option {index + 1}</h4>
+									<h4 class="font-semibold text-white">Option {index + 1}</h4>
 									{#if options.length > 2}
 										<button
 											type="button"
 											on:click={() => removeOption(index)}
 											disabled={loading}
-											class="rounded-lg bg-red-600 px-3 py-1 text-sm text-white transition-colors duration-200 hover:bg-red-700 disabled:opacity-50"
+											class="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white transition-all hover:bg-red-700 disabled:opacity-50"
 										>
 											Remove
 										</button>
@@ -329,7 +309,7 @@
 								<div class="grid gap-4 md:grid-cols-2">
 									<!-- Label -->
 									<div class="md:col-span-2">
-										<label class="mb-2 block text-sm font-medium text-gray-300">
+										<label class="mb-2 block text-sm font-semibold text-gray-300">
 											Label *
 										</label>
 										<input
@@ -337,13 +317,13 @@
 											bind:value={option.label}
 											placeholder="e.g., Cozy Cabin in the Mountains"
 											disabled={loading}
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 										/>
 									</div>
 
 									<!-- Airbnb Link -->
 									<div class="md:col-span-2">
-										<label class="mb-2 block text-sm font-medium text-gray-300">
+										<label class="mb-2 block text-sm font-semibold text-gray-300">
 											Airbnb Link *
 										</label>
 										<input
@@ -351,13 +331,13 @@
 											bind:value={option.airbnbLink}
 											placeholder="https://www.airbnb.com/..."
 											disabled={loading}
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 										/>
 									</div>
 
 									<!-- Description -->
 									<div class="md:col-span-2">
-										<label class="mb-2 block text-sm font-medium text-gray-300">
+										<label class="mb-2 block text-sm font-semibold text-gray-300">
 											Description
 										</label>
 										<textarea
@@ -365,13 +345,13 @@
 											placeholder="Add details about this option..."
 											disabled={loading}
 											rows="2"
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 										></textarea>
 									</div>
 
 									<!-- Benefits -->
 									<div class="md:col-span-2">
-										<label class="mb-2 block text-sm font-medium text-gray-300">
+										<label class="mb-2 block text-sm font-semibold text-gray-300">
 											Benefits
 										</label>
 										<textarea
@@ -379,13 +359,13 @@
 											placeholder="What are the advantages of this option?"
 											disabled={loading}
 											rows="2"
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 										></textarea>
 									</div>
 
 									<!-- Disadvantages -->
 									<div class="md:col-span-2">
-										<label class="mb-2 block text-sm font-medium text-gray-300">
+										<label class="mb-2 block text-sm font-semibold text-gray-300">
 											Disadvantages
 										</label>
 										<textarea
@@ -393,13 +373,13 @@
 											placeholder="What are the downsides of this option?"
 											disabled={loading}
 											rows="2"
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 										></textarea>
 									</div>
 
 									<!-- Country -->
 									<div>
-										<label class="mb-2 block text-sm font-medium text-gray-300">
+										<label class="mb-2 block text-sm font-semibold text-gray-300">
 											Country
 										</label>
 										<input
@@ -407,13 +387,13 @@
 											bind:value={option.country}
 											placeholder="e.g., Switzerland"
 											disabled={loading}
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 										/>
 									</div>
 
 									<!-- Travel Time -->
 									<div>
-										<label class="mb-2 block text-sm font-medium text-gray-300">
+										<label class="mb-2 block text-sm font-semibold text-gray-300">
 											Travel Time (hours)
 										</label>
 										<input
@@ -421,7 +401,7 @@
 											bind:value={option.travelTime}
 											placeholder="0"
 											disabled={loading}
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 										/>
 									</div>
 
@@ -434,13 +414,13 @@
 												disabled={loading}
 												class="h-4 w-4 cursor-pointer rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
 											/>
-											<span class="ml-3 text-sm text-gray-300">Flight needed</span>
+											<span class="ml-3 text-sm font-medium text-gray-300">Flight needed</span>
 										</label>
 									</div>
 
 									<!-- Airbnb Price -->
 									<div>
-										<label class="mb-2 block text-sm font-medium text-gray-300">
+										<label class="mb-2 block text-sm font-semibold text-gray-300">
 											Airbnb Price (€)
 										</label>
 										<input
@@ -449,13 +429,13 @@
 											bind:value={option.airbnbPrice}
 											placeholder="0.00"
 											disabled={loading}
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 										/>
 									</div>
 
 									<!-- Total Price -->
 									<div>
-										<label class="mb-2 block text-sm font-medium text-gray-300">
+										<label class="mb-2 block text-sm font-semibold text-gray-300">
 											Total Price Per Person (€)
 										</label>
 										<input
@@ -464,7 +444,7 @@
 											bind:value={option.totalPrice}
 											placeholder="0.00"
 											disabled={loading}
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 										/>
 									</div>
 								</div>
@@ -476,7 +456,7 @@
 						type="button"
 						on:click={addOption}
 						disabled={loading}
-						class="mt-4 w-full rounded-lg border-2 border-dashed border-gray-600 bg-gray-700/30 px-4 py-3 text-sm font-semibold text-gray-300 transition-colors duration-200 hover:border-blue-500 hover:bg-gray-700/50 hover:text-blue-400 disabled:opacity-50"
+						class="mt-4 w-full rounded-xl border-2 border-dashed border-gray-600 bg-gray-700/30 px-4 py-3 text-sm font-semibold text-gray-300 transition-all duration-300 hover:border-blue-500 hover:bg-gray-700/50 hover:text-blue-400 disabled:opacity-50"
 					>
 						+ Add Another Option
 					</button>
@@ -486,7 +466,7 @@
 				<button
 					type="submit"
 					disabled={loading}
-					class="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-600"
+					class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
 				>
 					{#if loading}
 						<span class="inline-flex items-center">

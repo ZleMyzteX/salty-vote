@@ -2,7 +2,7 @@
 	import type { AirbnbExternalDataDto } from '../generated/models';
 	import { getApiBaseUrl } from './apiHelpers';
 	import { getToken } from './auth';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 
 	export let externalData: AirbnbExternalDataDto | null | undefined;
 	export let optionId: number;
@@ -12,6 +12,7 @@
 	let imageLoading = false;
 	let imageError = false;
 	let showModal = false;
+	let currentFetchController: AbortController | null = null;
 
 	$: hasData = externalData != null;
 	$: shouldLoadImage = externalData?.hasPictureDownloaded && !compact;
@@ -31,7 +32,7 @@
 		showModal = false;
 	}
 
-	function handleModalClick(event: MouseEvent) {
+	function handleModalClick(event: MouseEvent | Event) {
 		// Close modal when clicking outside the image
 		if (event.target === event.currentTarget) {
 			closeModal();
@@ -44,12 +45,28 @@
 		}
 	}
 
+	function overlayKeydown(e: KeyboardEvent) {
+		// if Enter/Space pressed on overlay, close (simulate click outside)
+		if ((e.key === 'Enter' || e.key === ' ') && (e.target === e.currentTarget)) {
+			handleModalClick(e as unknown as Event);
+		}
+	}
+
 	// Load image with authentication
 	async function loadAuthenticatedImage() {
 		if (!shouldLoadImage) return;
 
+		// Abort previous fetch if any
+		if (currentFetchController) {
+			currentFetchController.abort();
+			currentFetchController = null;
+		}
+
 		imageLoading = true;
 		imageError = false;
+
+		const controller = new AbortController();
+		currentFetchController = controller;
 
 		try {
 			const token = getToken();
@@ -58,7 +75,8 @@
 			const response = await fetch(url, {
 				headers: token ? {
 					'Authorization': `Bearer ${token}`
-				} : {}
+				} : {},
+				signal: controller.signal
 			});
 
 			if (!response.ok) {
@@ -66,27 +84,87 @@
 			}
 
 			const blob = await response.blob();
+
+			// If aborted after blob read, just return
+			if (controller.signal.aborted) return;
+
+			// Revoke previous object URL if present before assigning a new one
+			if (imageDataUrl) {
+				URL.revokeObjectURL(imageDataUrl);
+				imageDataUrl = null;
+			}
+
 			imageDataUrl = URL.createObjectURL(blob);
-		} catch (error) {
+		} catch (error: any) {
+			if (error && error.name === 'AbortError') {
+				// fetch was aborted - do nothing
+				return;
+			}
 			console.error('Error loading image:', error);
 			imageError = true;
 		} finally {
 			imageLoading = false;
+			currentFetchController = null;
 		}
 	}
 
-	// Load image when component mounts or when shouldLoadImage changes
-	$: if (shouldLoadImage) {
+	// Track the last loaded optionId to detect when we need to reload
+	let lastLoadedOptionId: number | undefined = undefined;
+
+	// Only reload image when optionId actually changes
+	$: if (optionId !== lastLoadedOptionId) {
+		// optionId changed - cleanup old image and load new one
+		if (imageDataUrl) {
+			URL.revokeObjectURL(imageDataUrl);
+			imageDataUrl = null;
+		}
+
+		// Reset error/loading state
+		imageError = false;
+		imageLoading = false;
+
+		// Abort any in-flight fetch
+		if (currentFetchController) {
+			currentFetchController.abort();
+			currentFetchController = null;
+		}
+
+		lastLoadedOptionId = optionId;
+
+		// Start loading the new image if appropriate
+		if (shouldLoadImage) {
+			loadAuthenticatedImage();
+		}
+	}
+
+	// If shouldLoadImage becomes true (e.g., compact changes from true to false), load the image
+	$: if (shouldLoadImage && !imageDataUrl && !imageLoading && !imageError && optionId === lastLoadedOptionId) {
 		loadAuthenticatedImage();
 	}
 
-	// Cleanup blob URL on component destroy
+	// Cleanup blob URL and abort controller on destroy
 	onMount(() => {
 		return () => {
 			if (imageDataUrl) {
 				URL.revokeObjectURL(imageDataUrl);
+				imageDataUrl = null;
+			}
+			if (currentFetchController) {
+				currentFetchController.abort();
+				currentFetchController = null;
 			}
 		};
+	});
+
+	onDestroy(() => {
+		if (imageDataUrl) {
+			URL.revokeObjectURL(imageDataUrl);
+			imageDataUrl = null;
+		}
+		if (currentFetchController) {
+			currentFetchController.abort();
+			currentFetchController = null;
+		}
 	});
 </script>
 
@@ -112,15 +190,13 @@
 							</svg>
 						</div>
 					{:else if imageDataUrl}
-						<img
-							src={imageDataUrl}
-							alt={externalData.title || 'Property'}
-							class="h-20 w-20 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity"
-							on:click={openImageModal}
-							on:keydown={(e) => e.key === 'Enter' && openImageModal()}
-							role="button"
-							tabindex="0"
-						/>
+						<button type="button" class="p-0 m-0 border-0 bg-transparent" on:click={openImageModal} on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && openImageModal()} aria-label="Open image">
+							<img
+								src={imageDataUrl}
+								alt={externalData.title || 'Property'}
+								class="h-20 w-20 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity"
+							/>
+						</button>
 					{/if}
 				</div>
 			{/if}
@@ -197,6 +273,8 @@
 		on:click={handleModalClick}
 		role="dialog"
 		aria-modal="true"
+		tabindex="0"
+		on:keydown={overlayKeydown}
 	>
 		<button
 			on:click={closeModal}
@@ -224,4 +302,3 @@
 		</div>
 	</div>
 {/if}
-

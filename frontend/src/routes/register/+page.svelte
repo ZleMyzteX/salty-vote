@@ -84,19 +84,25 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-gray-900">
+<div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
 	<div class="mx-4 w-full max-w-md">
-		<div class="rounded-lg bg-gray-800 p-8 shadow-xl">
+		<div class="rounded-2xl border-2 border-gray-700 bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-8 shadow-2xl backdrop-blur-sm">
 			<div class="mb-8 text-center">
-				<h1 class="mb-2 text-3xl font-bold text-white">🗳️ SaltyVote</h1>
-				<p class="text-gray-400">Create a new account</p>
+				<div class="mb-4 inline-flex items-center justify-center">
+					<div class="text-5xl">🏠</div>
+				</div>
+				<h1 class="mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-4xl font-extrabold text-transparent">
+					SaltyVote
+				</h1>
+				<p class="text-gray-300">Create a new account</p>
 			</div>
 
 			{#if success}
 				<div
-					class="mb-6 rounded-lg border border-green-800 bg-green-900/20 p-3 text-center text-sm text-green-400"
+					class="mb-6 rounded-xl border-2 border-green-800 bg-green-900/30 p-4 text-center backdrop-blur-sm"
 				>
-					Registration successful! Logging you in...
+					<div class="mb-2 text-3xl">✅</div>
+					<p class="text-sm font-semibold text-green-400">Registration successful! Logging you in...</p>
 				</div>
 			{/if}
 
@@ -104,7 +110,7 @@
 				<div>
 					<label
 						for="username"
-						class="mb-2 block text-sm font-medium text-gray-300"
+						class="mb-2 block text-sm font-semibold text-gray-300"
 					>
 						Username
 					</label>
@@ -114,14 +120,14 @@
 						bind:value={username}
 						placeholder="Choose username..."
 						disabled={loading || success}
-						class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+						class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-3 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 					/>
 				</div>
 
 				<div>
 					<label
 						for="password"
-						class="mb-2 block text-sm font-medium text-gray-300"
+						class="mb-2 block text-sm font-semibold text-gray-300"
 					>
 						Password
 					</label>
@@ -131,14 +137,14 @@
 						bind:value={password}
 						placeholder="Create password..."
 						disabled={loading || success}
-						class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+						class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-3 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 					/>
 				</div>
 
 				<div>
 					<label
 						for="confirmPassword"
-						class="mb-2 block text-sm font-medium text-gray-300"
+						class="mb-2 block text-sm font-semibold text-gray-300"
 					>
 						Confirm Password
 					</label>
@@ -148,22 +154,23 @@
 						bind:value={confirmPassword}
 						placeholder="Confirm password..."
 						disabled={loading || success}
-						class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+						class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-3 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
 					/>
 				</div>
 
 				{#if error}
 					<div
-						class="rounded-lg border border-red-800 bg-red-900/20 p-3 text-center text-sm text-red-400"
+						class="rounded-xl border-2 border-red-800 bg-red-900/30 p-4 text-center backdrop-blur-sm"
 					>
-						{error}
+						<div class="mb-2 text-2xl">⚠️</div>
+						<p class="text-sm font-semibold text-red-400">{error}</p>
 					</div>
 				{/if}
 
 				<button
 					type="submit"
 					disabled={loading || success || !username.trim() || !password.trim() || !confirmPassword.trim()}
-					class="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-600"
+					class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
 				>
 					{#if loading}
 						<span class="inline-flex items-center">
@@ -196,11 +203,11 @@
 			</form>
 
 			<div class="mt-6 text-center">
-				<p class="text-sm text-gray-500">
+				<p class="text-sm text-gray-400">
 					Already have an account?
 					<a
 						href="/login"
-						class="ml-1 text-blue-400 hover:text-blue-300"
+						class="ml-1 font-semibold text-blue-400 transition-colors hover:text-blue-300"
 					>
 						Login here
 					</a>

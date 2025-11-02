@@ -5,10 +5,10 @@
 	import { getEnrichedVoteApi, getVoteApi, getVoteCollaboratorApi, getUserApi, handleApiError } from '$lib/apiHelpers';
 	import { isAuthenticated, clearToken } from '$lib/auth';
 	import AirbnbExternalData from '$lib/AirbnbExternalData.svelte';
-	import type { VoteWithEnrichedAirbnbOptionsDto, CollaboratorDto, UserDto, AirbnbVoteOptionDto } from '../../../generated/models';
+	import type { VoteWithEnrichedAirbnbOptionsDto, CollaboratorDto, UserDto, AirbnbVoteOptionDto, UpdateVoteOptionDto } from '../../../generated/models';
 
 	// Get vote ID from URL
-	$: voteId = parseInt($page.params.id);
+	$: voteId = parseInt(String($page.params.id));
 
 	// State
 	let vote: VoteWithEnrichedAirbnbOptionsDto | null = null;
@@ -33,6 +33,12 @@
 	let addingOption = false;
 	let optionError = '';
 
+	// Edit option state
+	let editingOptionId: number | null = null;
+	let editOption = createEmptyEditOption();
+	let updatingOption = false;
+	let editOptionError = '';
+
 	onMount(() => {
 		if (!isAuthenticated()) {
 			goto('/login');
@@ -54,6 +60,20 @@
 			flightNeeded: false,
 			airbnbPrice: 0,
 			airbnbLink: ''
+		};
+	}
+
+	function createEmptyEditOption() {
+		return {
+			label: '',
+			description: '',
+			benefits: '',
+			disadvantages: '',
+			travelTime: 0,
+			totalPrice: 0,
+			country: '',
+			flightNeeded: false,
+			airbnbPrice: 0
 		};
 	}
 
@@ -206,6 +226,75 @@
 		}
 	}
 
+	function startEditOption(optionId: number) {
+		const option = vote?.options.find(o => o.id === optionId);
+		if (!option || !option.data) return;
+
+		editingOptionId = optionId;
+		editOption = {
+			label: option.label,
+			description: option.data.description || '',
+			benefits: option.data.benefits || '',
+			disadvantages: option.data.disadvantages || '',
+			travelTime: option.data.travelTime || 0,
+			totalPrice: option.data.totalPrice || 0,
+			country: option.data.country || '',
+			flightNeeded: option.data.flightNeeded || false,
+			airbnbPrice: option.data.airbnbPrice || 0
+		};
+		editOptionError = '';
+		showAddOption = false; // Close add form if open
+	}
+
+	function cancelEditOption() {
+		editingOptionId = null;
+		editOption = createEmptyEditOption();
+		editOptionError = '';
+	}
+
+	async function handleUpdateOption() {
+		if (!editOption.label.trim()) {
+			editOptionError = 'Label is required';
+			return;
+		}
+
+		if (editingOptionId === null) return;
+
+		updatingOption = true;
+		editOptionError = '';
+
+		try {
+			const voteApi = getVoteApi();
+
+			const updateDto: UpdateVoteOptionDto = {
+				label: editOption.label.trim(),
+				description: editOption.description.trim(),
+				benefits: editOption.benefits.trim(),
+				disadvantages: editOption.disadvantages.trim(),
+				travelTime: editOption.travelTime,
+				totalPrice: editOption.totalPrice,
+				country: editOption.country.trim(),
+				flightNeeded: editOption.flightNeeded,
+				airbnbPrice: editOption.airbnbPrice
+			};
+
+			await voteApi.updateVoteOption({
+				voteId,
+				optionId: editingOptionId,
+				updateVoteOptionDto: updateDto
+			});
+
+			// Reload vote data to get the updated option
+			await loadVoteData();
+
+			cancelEditOption();
+		} catch (err) {
+			editOptionError = await handleApiError(err);
+		} finally {
+			updatingOption = false;
+		}
+	}
+
 	async function handleToggleDone() {
 		if (!vote) return;
 
@@ -240,7 +329,7 @@
 	);
 </script>
 
-<div class="min-h-screen bg-gray-900 py-8">
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8">
 	<div class="mx-auto max-w-6xl px-4">
 		{#if loading}
 			<div class="flex items-center justify-center py-20">
@@ -254,15 +343,16 @@
 						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 					</svg>
-					<p class="mt-4 text-gray-400">Loading vote...</p>
+					<p class="mt-4 text-gray-300">Loading vote...</p>
 				</div>
 			</div>
 		{:else if error}
-			<div class="rounded-lg border border-red-800 bg-red-900/20 p-6 text-center">
-				<p class="text-red-400">{error}</p>
+			<div class="rounded-2xl border-2 border-red-800 bg-red-900/30 p-8 text-center backdrop-blur-sm">
+				<div class="mb-3 text-4xl">⚠️</div>
+				<p class="mb-4 text-lg font-semibold text-red-400">{error}</p>
 				<button
 					on:click={handleBack}
-					class="mt-4 rounded-lg bg-gray-700 px-4 py-2 text-white hover:bg-gray-600"
+					class="rounded-xl bg-gray-700 px-6 py-2 font-semibold text-white transition-all hover:bg-gray-600"
 				>
 					Go Back
 				</button>
@@ -272,29 +362,35 @@
 			<div class="mb-8 flex items-start justify-between">
 				<div class="flex-1">
 					<div class="flex items-center gap-3">
-						<h1 class="text-3xl font-bold text-white">{vote.title}</h1>
+						<h1 class="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-3xl font-extrabold text-transparent">{vote.title}</h1>
 						{#if vote.done}
-							<span class="rounded-full bg-green-900/30 px-3 py-1 text-sm font-medium text-green-400">
+							<span class="flex items-center gap-1 rounded-full bg-green-900/40 px-3 py-1 text-sm font-bold text-green-400 shadow-lg">
+								<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+									<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+								</svg>
 								Completed
 							</span>
 						{:else}
-							<span class="rounded-full bg-blue-900/30 px-3 py-1 text-sm font-medium text-blue-400">
+							<span class="flex items-center gap-1 rounded-full bg-blue-900/40 px-3 py-1 text-sm font-bold text-blue-400 shadow-lg">
+								<svg class="h-4 w-4 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+									<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+								</svg>
 								Active
 							</span>
 						{/if}
 					</div>
 					{#if vote.description}
-						<p class="mt-2 text-gray-400">{vote.description}</p>
+						<p class="mt-2 text-gray-300">{vote.description}</p>
 					{/if}
 					<div class="mt-3 flex flex-wrap gap-2 text-sm">
-						<span class="rounded bg-gray-700 px-2 py-1 text-gray-300">
+						<span class="rounded-lg bg-gray-700/50 px-3 py-1.5 font-medium text-gray-300">
 							{vote.voteType === 'RANKING' ? '📊 Ranking Vote' : '✅ Simple Vote'}
 						</span>
 						{#if vote.allowMultiVote}
-							<span class="rounded bg-gray-700 px-2 py-1 text-gray-300">Multiple votes allowed</span>
+							<span class="rounded-lg bg-gray-700/50 px-3 py-1.5 font-medium text-gray-300">Multiple votes allowed</span>
 						{/if}
 						{#if vote.allowAnonymousVote}
-							<span class="rounded bg-gray-700 px-2 py-1 text-gray-300">Anonymous voting</span>
+							<span class="rounded-lg bg-gray-700/50 px-3 py-1.5 font-medium text-gray-300">Anonymous voting</span>
 						{/if}
 					</div>
 				</div>
@@ -302,16 +398,16 @@
 					<button
 						on:click={loadVoteData}
 						disabled={loading}
-						class="rounded-lg border border-blue-600 bg-blue-600/20 px-4 py-2 text-sm font-semibold text-blue-300 transition-colors duration-200 hover:bg-blue-600/30 disabled:opacity-50"
+						class="rounded-xl border-2 border-blue-600 bg-blue-600/20 px-4 py-2 text-sm font-semibold text-blue-300 backdrop-blur-sm transition-all duration-300 hover:bg-blue-600/30 disabled:opacity-50"
 						title="Reload vote data"
 					>
 						{loading ? '↻ Reloading...' : '↻ Reload'}
 					</button>
 					<button
 						on:click={handleBack}
-						class="rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-gray-600"
+						class="rounded-xl border-2 border-gray-600 bg-gray-800/50 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-gray-500 hover:bg-gray-700/50"
 					>
-						Back
+						← Back
 					</button>
 				</div>
 			</div>
@@ -320,95 +416,95 @@
 				<!-- Main Content -->
 				<div class="lg:col-span-2 space-y-6">
 					<!-- Options -->
-					<div class="rounded-lg bg-gray-800 p-6 shadow-xl">
+					<div class="rounded-2xl border-2 border-gray-700 bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 shadow-2xl backdrop-blur-sm">
 						<div class="mb-4 flex items-center justify-between">
-							<h2 class="text-xl font-semibold text-white">Airbnb Options</h2>
+							<h2 class="text-xl font-bold text-white">Airbnb Options</h2>
 							<button
 								on:click={() => showAddOption = !showAddOption}
-								class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700"
+								class="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/50"
 							>
 								{showAddOption ? 'Cancel' : '+ Add Option'}
 							</button>
 						</div>
 
 						{#if showAddOption}
-							<div class="mb-6 rounded-lg border border-gray-600 bg-gray-700/50 p-4">
-								<h3 class="mb-4 font-medium text-white">Add New Option</h3>
+							<div class="mb-6 rounded-xl border-2 border-gray-600 bg-gray-700/30 p-4 backdrop-blur-sm">
+								<h3 class="mb-4 font-semibold text-white">Add New Option</h3>
 
 								{#if optionError}
-									<div class="mb-4 rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400">
-										{optionError}
+									<div class="mb-4 rounded-xl border-2 border-red-800 bg-red-900/30 p-3 text-center backdrop-blur-sm">
+										<p class="text-sm font-semibold text-red-400">{optionError}</p>
 									</div>
 								{/if}
 
 								<div class="grid gap-4 md:grid-cols-2">
 									<div class="md:col-span-2">
-										<label class="mb-2 block text-sm font-medium text-gray-300">Label *</label>
+										<label class="mb-2 block text-sm font-semibold text-gray-300">Label *</label>
 										<input
 											type="text"
 											bind:value={newOption.label}
 											placeholder="e.g., Beach House in Malibu"
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
 										/>
 									</div>
 
 									<div class="md:col-span-2">
-										<label class="mb-2 block text-sm font-medium text-gray-300">Airbnb Link *</label>
+										<label class="mb-2 block text-sm font-semibold text-gray-300">Airbnb Link *</label>
 										<input
 											type="url"
 											bind:value={newOption.airbnbLink}
 											placeholder="https://www.airbnb.com/..."
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
 										/>
 									</div>
 
 									<div class="md:col-span-2">
-										<label class="mb-2 block text-sm font-medium text-gray-300">Description</label>
+										<label class="mb-2 block text-sm font-semibold text-gray-300">Description</label>
 										<textarea
 											bind:value={newOption.description}
 											placeholder="Additional details..."
 											rows="2"
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
 										></textarea>
 									</div>
 
 									<div class="md:col-span-2">
-										<label class="mb-2 block text-sm font-medium text-gray-300">Benefits</label>
+										<label class="mb-2 block text-sm font-semibold text-gray-300">Benefits</label>
 										<textarea
 											bind:value={newOption.benefits}
 											placeholder="What are the advantages?"
 											rows="2"
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
 										></textarea>
 									</div>
 
 									<div class="md:col-span-2">
-										<label class="mb-2 block text-sm font-medium text-gray-300">Disadvantages</label>
+										<label class="mb-2 block text-sm font-semibold text-gray-300">Disadvantages</label>
 										<textarea
 											bind:value={newOption.disadvantages}
 											placeholder="What are the downsides?"
 											rows="2"
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
 										></textarea>
 									</div>
 
 									<div>
-										<label class="mb-2 block text-sm font-medium text-gray-300">Country</label>
+										<label class="mb-2 block text-sm font-semibold text-gray-300">Country</label>
 										<input
 											type="text"
 											bind:value={newOption.country}
 											placeholder="e.g., USA"
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
 										/>
 									</div>
 
 									<div>
-										<label class="mb-2 block text-sm font-medium text-gray-300">Travel Time (hours)</label>
+										<label class="mb-2 block text-sm font-semibold text-gray-300">Travel Time (hours)</label>
 										<input
 											type="number"
 											bind:value={newOption.travelTime}
 											placeholder="0"
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
 										/>
 									</div>
 
@@ -419,29 +515,29 @@
 												bind:checked={newOption.flightNeeded}
 												class="h-4 w-4 cursor-pointer rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500"
 											/>
-											<span class="ml-3 text-sm text-gray-300">Flight needed</span>
+											<span class="ml-3 text-sm font-medium text-gray-300">Flight needed</span>
 										</label>
 									</div>
 
 									<div>
-										<label class="mb-2 block text-sm font-medium text-gray-300">Airbnb Price (€)</label>
+										<label class="mb-2 block text-sm font-semibold text-gray-300">Airbnb Price (€)</label>
 										<input
 											type="number"
 											step="0.01"
 											bind:value={newOption.airbnbPrice}
 											placeholder="0.00"
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
 										/>
 									</div>
 
 									<div>
-										<label class="mb-2 block text-sm font-medium text-gray-300">Total Price Per Person (€)</label>
+										<label class="mb-2 block text-sm font-semibold text-gray-300">Total Price Per Person (€)</label>
 										<input
 											type="number"
 											step="0.01"
 											bind:value={newOption.totalPrice}
 											placeholder="0.00"
-											class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+											class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
 										/>
 									</div>
 								</div>
@@ -449,7 +545,7 @@
 								<button
 									on:click={handleAddOption}
 									disabled={addingOption}
-									class="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors duration-200 hover:bg-blue-700 disabled:bg-gray-600"
+									class="mt-4 w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/50 disabled:opacity-50 disabled:hover:scale-100"
 								>
 									{addingOption ? 'Adding...' : 'Add Option'}
 								</button>
@@ -457,70 +553,206 @@
 						{/if}
 
 						<div class="space-y-4">
-							{#each vote.options as option}
-								<div class="rounded-lg border border-gray-600 bg-gray-700/30 p-4">
-									<div class="flex items-start justify-between">
-										<div class="flex-1">
-											<h3 class="text-lg font-medium text-white">{option.label}</h3>
-											{#if option.data}
-												<div class="mt-2 space-y-2 text-sm text-gray-400">
-													{#if option.data.description}
-														<p>{option.data.description}</p>
-													{/if}
-													{#if option.data.benefits}
-														<div>
-															<span class="font-medium text-green-400">✓ Benefits:</span>
-															<p class="ml-4">{option.data.benefits}</p>
+							{#each vote.options as option (option.id)}
+								{#if editingOptionId === option.id}
+									<!-- Edit Option Form -->
+									<div class="rounded-xl border-2 border-blue-600 bg-gradient-to-br from-blue-700/30 to-blue-800/30 p-4 backdrop-blur-sm">
+										<h3 class="mb-4 font-semibold text-white">Edit Option</h3>
+
+										{#if editOptionError}
+											<div class="mb-4 rounded-xl border-2 border-red-800 bg-red-900/30 p-3 text-center backdrop-blur-sm">
+												<p class="text-sm font-semibold text-red-400">{editOptionError}</p>
+											</div>
+										{/if}
+
+										<div class="grid gap-4 md:grid-cols-2">
+											<div class="md:col-span-2">
+												<label class="mb-2 block text-sm font-semibold text-gray-300">Label *</label>
+												<input
+													type="text"
+													bind:value={editOption.label}
+													placeholder="e.g., Beach House in Malibu"
+													class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+												/>
+											</div>
+
+											<div class="md:col-span-2">
+												<label class="mb-2 block text-sm font-semibold text-gray-300">Description</label>
+												<textarea
+													bind:value={editOption.description}
+													placeholder="Additional details..."
+													rows="2"
+													class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+												></textarea>
+											</div>
+
+											<div class="md:col-span-2">
+												<label class="mb-2 block text-sm font-semibold text-gray-300">Benefits</label>
+												<textarea
+													bind:value={editOption.benefits}
+													placeholder="What are the advantages?"
+													rows="2"
+													class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+												></textarea>
+											</div>
+
+											<div class="md:col-span-2">
+												<label class="mb-2 block text-sm font-semibold text-gray-300">Disadvantages</label>
+												<textarea
+													bind:value={editOption.disadvantages}
+													placeholder="What are the downsides?"
+													rows="2"
+													class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+												></textarea>
+											</div>
+
+											<div>
+												<label class="mb-2 block text-sm font-semibold text-gray-300">Country</label>
+												<input
+													type="text"
+													bind:value={editOption.country}
+													placeholder="e.g., USA"
+													class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+												/>
+											</div>
+
+											<div>
+												<label class="mb-2 block text-sm font-semibold text-gray-300">Travel Time (hours)</label>
+												<input
+													type="number"
+													bind:value={editOption.travelTime}
+													placeholder="0"
+													class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+												/>
+											</div>
+
+											<div class="flex items-center">
+												<label class="flex cursor-pointer items-center">
+													<input
+														type="checkbox"
+														bind:checked={editOption.flightNeeded}
+														class="h-4 w-4 cursor-pointer rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500"
+													/>
+													<span class="ml-3 text-sm font-medium text-gray-300">Flight needed</span>
+												</label>
+											</div>
+
+											<div>
+												<label class="mb-2 block text-sm font-semibold text-gray-300">Airbnb Price (€)</label>
+												<input
+													type="number"
+													step="0.01"
+													bind:value={editOption.airbnbPrice}
+													placeholder="0.00"
+													class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+												/>
+											</div>
+
+											<div>
+												<label class="mb-2 block text-sm font-semibold text-gray-300">Total Price Per Person (€)</label>
+												<input
+													type="number"
+													step="0.01"
+													bind:value={editOption.totalPrice}
+													placeholder="0.00"
+													class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 text-white placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+												/>
+											</div>
+										</div>
+
+										<div class="mt-4 flex gap-2">
+											<button
+												on:click={handleUpdateOption}
+												disabled={updatingOption}
+												class="flex-1 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/50 disabled:opacity-50 disabled:hover:scale-100"
+											>
+												{updatingOption ? 'Updating...' : 'Update Option'}
+											</button>
+											<button
+												on:click={cancelEditOption}
+												disabled={updatingOption}
+												class="rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-gray-500 hover:bg-gray-600/50 disabled:opacity-50"
+											>
+												Cancel
+											</button>
+										</div>
+									</div>
+								{:else}
+									<!-- Display Option -->
+									<div class="rounded-xl border-2 border-gray-600 bg-gradient-to-br from-gray-700/40 to-gray-800/40 p-4 backdrop-blur-sm transition-all duration-300 hover:border-gray-500">
+										<div class="flex items-start justify-between">
+											<div class="flex-1">
+												<h3 class="text-lg font-semibold text-white">{option.label}</h3>
+												{#if option.data}
+													<div class="mt-2 space-y-2 text-sm text-gray-300">
+														{#if option.data.description}
+															<p>{option.data.description}</p>
+														{/if}
+														{#if option.data.benefits}
+															<div>
+																<span class="font-medium text-green-400">✓ Benefits:</span>
+																<p class="ml-4">{option.data.benefits}</p>
+															</div>
+														{/if}
+														{#if option.data.disadvantages}
+															<div>
+																<span class="font-medium text-red-400">✗ Disadvantages:</span>
+																<p class="ml-4">{option.data.disadvantages}</p>
+															</div>
+														{/if}
+														<div class="flex flex-wrap gap-4">
+															{#if option.data.country}
+																<span>📍 {option.data.country}</span>
+															{/if}
+															{#if option.data.travelTime > 0}
+																<span>⏱️ {option.data.travelTime} hours</span>
+															{/if}
+															{#if option.data.airbnbPrice > 0}
+																<span>💰 €{option.data.airbnbPrice.toFixed(2)} (Airbnb)</span>
+															{/if}
+															{#if option.data.totalPrice > 0}
+																<span>💵 €{option.data.totalPrice.toFixed(2)} (Per Person)</span>
+															{/if}
+															{#if option.data.flightNeeded}
+																<span>✈️ Flight</span>
+															{:else}
+																<span>🚗 Car</span>
+															{/if}
 														</div>
-													{/if}
-													{#if option.data.disadvantages}
-														<div>
-															<span class="font-medium text-red-400">✗ Disadvantages:</span>
-															<p class="ml-4">{option.data.disadvantages}</p>
-														</div>
-													{/if}
-													<div class="flex flex-wrap gap-4">
-														{#if option.data.country}
-															<span>📍 {option.data.country}</span>
-														{/if}
-														{#if option.data.travelTime > 0}
-															<span>⏱️ {option.data.travelTime} hours</span>
-														{/if}
-														{#if option.data.airbnbPrice > 0}
-															<span>💰 €{option.data.airbnbPrice.toFixed(2)} (Airbnb)</span>
-														{/if}
-														{#if option.data.totalPrice > 0}
-															<span>💵 €{option.data.totalPrice.toFixed(2)} (Per Person)</span>
-														{/if}
-														{#if option.data.flightNeeded}
-															<span>✈️ Flight</span>
-														{:else}
-															<span>🚗 Car</span>
+														{#if option.data.airbnbLink && !option.externalData}
+															<a
+																href={option.data.airbnbLink}
+																target="_blank"
+																rel="noopener noreferrer"
+																class="inline-block text-blue-400 hover:text-blue-300"
+															>
+																View on Airbnb →
+															</a>
 														{/if}
 													</div>
-                                                    {#if option.data.airbnbLink && !option.externalData}
-														<a
-															href={option.data.airbnbLink}
-															target="_blank"
-															rel="noopener noreferrer"
-															class="inline-block text-blue-400 hover:text-blue-300"
-														>
-															View on Airbnb →
-														</a>
-													{/if}
-												</div>
-											{/if}
-											<!-- External Airbnb Data -->
-											<AirbnbExternalData externalData={option.externalData} optionId={option.id} />
+												{/if}
+												<!-- External Airbnb Data -->
+												<AirbnbExternalData externalData={option.externalData} optionId={option.id} />
+											</div>
+											<div class="ml-4 flex gap-2">
+												<button
+													on:click={() => startEditOption(option.id)}
+													class="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition-all hover:bg-blue-700"
+													title="Edit option"
+												>
+													✏️
+												</button>
+												<button
+													on:click={() => handleDeleteOption(option.id)}
+													class="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white transition-all hover:bg-red-700"
+													title="Delete option"
+												>
+													🗑️
+												</button>
+											</div>
 										</div>
-										<button
-											on:click={() => handleDeleteOption(option.id)}
-											class="ml-4 rounded-lg bg-red-600 px-3 py-1 text-sm text-white transition-colors duration-200 hover:bg-red-700"
-										>
-											Delete
-										</button>
 									</div>
-								</div>
+								{/if}
 							{:else}
 								<p class="text-center text-gray-400">No options added yet</p>
 							{/each}
@@ -531,31 +763,31 @@
 				<!-- Sidebar -->
 				<div class="space-y-6">
 					<!-- Vote Now Button - Always visible for creators and collaborators -->
-					<div class="rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 p-6 shadow-xl">
+					<div class="rounded-2xl border-2 border-green-500 bg-gradient-to-br from-green-600/90 to-emerald-600/90 p-6 shadow-2xl backdrop-blur-sm">
 						<h2 class="mb-2 text-xl font-bold text-white">Ready to vote?</h2>
-						<p class="mb-4 text-sm text-green-100">Cast your vote or see how others have voted</p>
+						<p class="mb-4 text-sm text-green-50">Cast your vote or see how others have voted</p>
 						<button
 							on:click={() => goto(`/vote/${voteId}`)}
-							class="w-full rounded-lg bg-white px-6 py-3 text-lg font-bold text-green-600 transition-all duration-200 hover:bg-green-50 hover:shadow-lg active:scale-95"
+							class="w-full rounded-xl bg-white px-6 py-3 text-lg font-bold text-green-600 shadow-lg transition-all duration-300 hover:scale-105 hover:bg-green-50 hover:shadow-xl active:scale-95"
 						>
-							Vote Now →
+							🗳️ Vote Now →
 						</button>
 					</div>
 
 					<!-- Actions -->
 					{#if vote.isCreator}
-						<div class="rounded-lg bg-gray-800 p-6 shadow-xl">
-							<h2 class="mb-4 text-lg font-semibold text-white">Actions</h2>
+						<div class="rounded-2xl border-2 border-gray-700 bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 shadow-2xl backdrop-blur-sm">
+							<h2 class="mb-4 text-lg font-bold text-white">Actions</h2>
 							<div class="space-y-3">
 								<button
 									on:click={handleToggleDone}
-									class="w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors duration-200 hover:bg-blue-700"
+									class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/50"
 								>
 									{vote.done ? 'Reopen Vote' : 'Mark as Done'}
 								</button>
 								<button
 									on:click={goToResults}
-									class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 font-semibold text-white transition-colors duration-200 hover:bg-gray-600"
+									class="w-full rounded-xl border-2 border-gray-600 bg-gray-700/50 px-4 py-2 font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-gray-500 hover:bg-gray-600/50"
 								>
 									View Results
 								</button>
@@ -564,19 +796,19 @@
 					{/if}
 
 					<!-- Share Link -->
-					<div class="rounded-lg bg-gray-800 p-6 shadow-xl">
-						<h2 class="mb-4 text-lg font-semibold text-white">Share Vote</h2>
-						<p class="mb-3 text-sm text-gray-400">Share this link with others to let them vote:</p>
+					<div class="rounded-2xl border-2 border-gray-700 bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 shadow-2xl backdrop-blur-sm">
+						<h2 class="mb-4 text-lg font-bold text-white">Share Vote</h2>
+						<p class="mb-3 text-sm text-gray-300">Share this link with others to let them vote:</p>
 						<div class="flex gap-2">
 							<input
 								type="text"
 								value={shareLink}
 								readonly
-								class="flex-1 rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-sm text-white"
+								class="flex-1 rounded-xl border-2 border-gray-600 bg-gray-700/50 px-3 py-2 text-sm text-white"
 							/>
 							<button
 								on:click={copyShareLink}
-								class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700"
+								class="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/50"
 							>
 								{linkCopied ? '✓' : 'Copy'}
 							</button>
@@ -585,12 +817,12 @@
 
 					<!-- Collaborators -->
 					{#if vote.isCreator}
-						<div class="rounded-lg bg-gray-800 p-6 shadow-xl">
+						<div class="rounded-2xl border-2 border-gray-700 bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 shadow-2xl backdrop-blur-sm">
 							<div class="mb-4 flex items-center justify-between">
-								<h2 class="text-lg font-semibold text-white">Collaborators</h2>
+								<h2 class="text-lg font-bold text-white">Collaborators</h2>
 								<button
 									on:click={() => showAddCollaborator = !showAddCollaborator}
-									class="rounded-lg bg-blue-600 px-3 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700"
+									class="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-3 py-1 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:scale-105"
 								>
 									{showAddCollaborator ? 'Cancel' : '+ Add'}
 								</button>
@@ -647,4 +879,3 @@
 		{/if}
 	</div>
 </div>
-

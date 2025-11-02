@@ -2,6 +2,7 @@ package er.codes.saltyvote.vote.controller
 
 import er.codes.saltyvote.vote.model.AirbnbVoteOptionDto
 import er.codes.saltyvote.vote.model.CreateAirbnbVoteDto
+import er.codes.saltyvote.vote.model.UpdateVoteOptionDto
 import er.codes.saltyvote.vote.model.VoteListDto
 import er.codes.saltyvote.vote.model.VoteListWithRelationshipDto
 import er.codes.saltyvote.vote.model.VoteWithAirbnbOptionsDto
@@ -75,6 +76,16 @@ class VoteCreationController(
     ): ResponseEntity<Map<String, Long>> {
         val optionId = voteManagementService.addVoteOption(voteId, req)
         return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("optionId" to optionId))
+    }
+
+    @PutMapping("/{voteId}/options/{optionId}")
+    fun updateVoteOption(
+        @PathVariable voteId: Long,
+        @PathVariable optionId: Long,
+        @RequestBody req: UpdateVoteOptionDto,
+    ): ResponseEntity<Unit> {
+        voteManagementService.updateVoteOption(voteId, optionId, req)
+        return ResponseEntity.ok().build()
     }
 
     @DeleteMapping("/{voteId}/options/{optionId}")

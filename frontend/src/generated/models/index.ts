@@ -10,6 +10,7 @@ export * from './CollaboratorDto';
 export * from './CreateAirbnbVoteDto';
 export * from './GatePasswordDto';
 export * from './IndividualVoterDto';
+export * from './UpdateVoteOptionDto';
 export * from './UserCreateRequestDto';
 export * from './UserDetailDto';
 export * from './UserDto';

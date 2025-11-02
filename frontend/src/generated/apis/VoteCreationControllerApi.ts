@@ -17,6 +17,7 @@ import * as runtime from '../runtime';
 import type {
   AirbnbVoteOptionDto,
   CreateAirbnbVoteDto,
+  UpdateVoteOptionDto,
   VoteListDto,
   VoteListWithRelationshipDto,
   VoteWithAirbnbOptionsDto,
@@ -26,6 +27,8 @@ import {
     AirbnbVoteOptionDtoToJSON,
     CreateAirbnbVoteDtoFromJSON,
     CreateAirbnbVoteDtoToJSON,
+    UpdateVoteOptionDtoFromJSON,
+    UpdateVoteOptionDtoToJSON,
     VoteListDtoFromJSON,
     VoteListDtoToJSON,
     VoteListWithRelationshipDtoFromJSON,
@@ -64,6 +67,12 @@ export interface MarkVoteAsDoneRequest {
 export interface UpdateAirbnbVoteRequest {
     voteId: number;
     createAirbnbVoteDto: CreateAirbnbVoteDto;
+}
+
+export interface UpdateVoteOptionRequest {
+    voteId: number;
+    optionId: number;
+    updateVoteOptionDto: UpdateVoteOptionDto;
 }
 
 /**
@@ -432,6 +441,58 @@ export class VoteCreationControllerApi extends runtime.BaseAPI {
      */
     async updateAirbnbVote(requestParameters: UpdateAirbnbVoteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.updateAirbnbVoteRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async updateVoteOptionRaw(requestParameters: UpdateVoteOptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['voteId'] == null) {
+            throw new runtime.RequiredError(
+                'voteId',
+                'Required parameter "voteId" was null or undefined when calling updateVoteOption().'
+            );
+        }
+
+        if (requestParameters['optionId'] == null) {
+            throw new runtime.RequiredError(
+                'optionId',
+                'Required parameter "optionId" was null or undefined when calling updateVoteOption().'
+            );
+        }
+
+        if (requestParameters['updateVoteOptionDto'] == null) {
+            throw new runtime.RequiredError(
+                'updateVoteOptionDto',
+                'Required parameter "updateVoteOptionDto" was null or undefined when calling updateVoteOption().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/v1/votes/airbnb/{voteId}/options/{optionId}`;
+        urlPath = urlPath.replace(`{${"voteId"}}`, encodeURIComponent(String(requestParameters['voteId'])));
+        urlPath = urlPath.replace(`{${"optionId"}}`, encodeURIComponent(String(requestParameters['optionId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateVoteOptionDtoToJSON(requestParameters['updateVoteOptionDto']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async updateVoteOption(requestParameters: UpdateVoteOptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.updateVoteOptionRaw(requestParameters, initOverrides);
     }
 
 }

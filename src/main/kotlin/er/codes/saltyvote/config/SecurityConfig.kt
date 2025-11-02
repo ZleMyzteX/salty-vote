@@ -25,7 +25,8 @@ class SecurityConfig(
                 "http*://localhost:5173",
                 "http*://127.0.0.1:5173",
                 "http*://192.168.*.*:5173",
-                "http*://frontend.localhost",
+                "https://vote.saltybots.com",
+                "http*://sv-frontend.localhost",
             ) // TODO: Adjust to actual domain
         configuration.allowedMethods = listOf("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS")
         configuration.allowedHeaders = listOf("*")

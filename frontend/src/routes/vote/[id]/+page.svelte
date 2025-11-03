@@ -18,12 +18,12 @@
 	let submitSuccess = false;
 
 	// Voting state
-	let rankings: Map<number, number> = new Map(); // optionId -> rank
 	let selections: Set<number> = new Set(); // optionId for simple votes
 
 	// Drag and drop state for ranking
 	let draggedItem: number | null = null;
 	let rankedOptions: number[] = []; // Array of option IDs in ranked order
+	let newOptionIds: Set<number> = new Set(); // Track newly added options that user hasn't ranked yet
 
 	// Touch handling state for mobile
 	let touchStartY: number = 0;
@@ -41,6 +41,7 @@
 	async function loadVote() {
 		loading = true;
 		error = '';
+		submitSuccess = false; // Clear success state when reloading
 
 		try {
 			const enrichedVoteApi = getEnrichedVoteApi();
@@ -48,25 +49,41 @@
 
 			vote = await enrichedVoteApi.getEnrichedAirbnbVote({ voteId });
 
+			// Get all current option IDs from the vote
+			const currentOptionIds = new Set(vote.options.map(o => o.id));
+
 			// Try to load existing submission
 			try {
 				const existingSubmission = await submissionApi.getMySubmission({ voteId });
 
 				// Populate existing selections/rankings
 				if (vote.voteType === 'RANKING') {
-					existingSubmission.entries.forEach(entry => {
-						if (entry.rank !== undefined && entry.rank !== null) {
-							rankings.set(entry.optionId, entry.rank);
-						}
-					});
-					// Sort options by rank for drag & drop
-					rankedOptions = existingSubmission.entries
-						.filter(e => e.rank !== undefined)
+
+					// Get previously ranked option IDs that still exist
+					const previouslyRankedIds = new Set(
+						existingSubmission.entries
+							.filter(e => e.rank !== undefined)
+							.map(e => e.optionId)
+					);
+
+					// Identify new options (in current vote but not in previous submission)
+					newOptionIds = new Set(
+						Array.from(currentOptionIds).filter(id => !previouslyRankedIds.has(id))
+					);
+
+					// Build ranked options list - filter out deleted entries, keep existing order
+					const validPreviouslyRanked = existingSubmission.entries
+						.filter(e => e.rank !== undefined && currentOptionIds.has(e.optionId))
 						.sort((a, b) => (a.rank || 0) - (b.rank || 0))
 						.map(e => e.optionId);
+
+					// Append new options at the end (highlighted as NEW)
+					rankedOptions = [...validPreviouslyRanked, ...Array.from(newOptionIds)];
+
 				} else {
+					// For simple votes, handle removed options gracefully
 					existingSubmission.entries.forEach(entry => {
-						if (entry.selected) {
+						if (entry.selected && currentOptionIds.has(entry.optionId)) {
 							selections.add(entry.optionId);
 						}
 					});
@@ -74,6 +91,7 @@
 				}
 			} catch {
 				// No existing submission, that's fine
+				newOptionIds = new Set(); // Reassign for reactivity
 				if (vote.voteType === 'RANKING') {
 					// Initialize with options in the order returned by backend (random/as-is)
 					rankedOptions = vote.options.map(o => o.id);
@@ -98,6 +116,12 @@
 		let entries: VoteSubmissionEntryDto[] = [];
 
 		if (vote.voteType === 'RANKING') {
+			// Validate that there are options to rank
+			if (rankedOptions.length === 0) {
+				alert('No options available to rank');
+				return;
+			}
+
 			// Create entries based on ranked order
 			entries = rankedOptions.map((optionId, index) => ({
 				optionId,
@@ -110,11 +134,12 @@
 				optionId: option.id,
 				selected: selections.has(option.id)
 			}));
-		}
 
-		if (vote.voteType === 'SIMPLE' && entries.filter(e => e.selected).length === 0) {
-			alert('Please select at least one option');
-			return;
+			// Validate that at least one option is selected
+			if (entries.filter(e => e.selected).length === 0) {
+				alert('Please select at least one option');
+				return;
+			}
 		}
 
 		submitting = true;
@@ -201,6 +226,26 @@
 		}
 	}
 
+	function moveToTop(optionId: number) {
+		const index = rankedOptions.indexOf(optionId);
+		if (index > 0) {
+			const newRankedOptions = [...rankedOptions];
+			newRankedOptions.splice(index, 1);
+			newRankedOptions.unshift(optionId);
+			rankedOptions = newRankedOptions;
+		}
+	}
+
+	function moveToBottom(optionId: number) {
+		const index = rankedOptions.indexOf(optionId);
+		if (index < rankedOptions.length - 1) {
+			const newRankedOptions = [...rankedOptions];
+			newRankedOptions.splice(index, 1);
+			newRankedOptions.push(optionId);
+			rankedOptions = newRankedOptions;
+		}
+	}
+
 	function handleBack() {
 		goto('/');
 	}
@@ -225,7 +270,6 @@
 		event.preventDefault(); // Prevent scrolling while dragging
 
 		const touch = event.touches[0];
-		const deltaY = touch.clientY - touchStartY;
 
 		// Determine which item we're hovering over
 		const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
@@ -336,6 +380,13 @@
 				</div>
 			{/if}
 
+			{#if error && !loading}
+				<div class="mb-6 rounded-xl border-2 border-red-800 bg-red-900/30 p-4 sm:p-6 text-center backdrop-blur-sm">
+					<div class="mb-2 text-3xl sm:text-4xl">⚠️</div>
+					<p class="font-semibold text-red-400 text-sm sm:text-base">{error}</p>
+				</div>
+			{/if}
+
 			<div class="rounded-2xl border-2 border-gray-700 bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-4 sm:p-6 md:p-8 shadow-2xl backdrop-blur-sm">
 				{#if vote.voteType === 'RANKING'}
 					<div class="mb-4 sm:mb-6">
@@ -343,11 +394,19 @@
 						<p class="text-xs sm:text-sm text-gray-300">
 							Touch and drag to reorder on mobile, or use the arrow buttons. Top option is your #1 choice.
 						</p>
+						{#if newOptionIds.size > 0}
+							<div class="mt-3 rounded-lg border-2 border-yellow-600 bg-yellow-900/20 p-3">
+								<p class="text-sm text-yellow-300">
+									⚠️ <strong>{newOptionIds.size}</strong> new {newOptionIds.size === 1 ? 'option has' : 'options have'} been added since your last submission. They are highlighted below - please rank them!
+								</p>
+							</div>
+						{/if}
 					</div>
 
 					<div class="space-y-3">
 						{#each rankedOptions as optionId, index (optionId)}
 							{@const option = vote.options.find(o => o.id === optionId)}
+							{@const isNewOption = newOptionIds.has(optionId)}
 							{#if option}
 								<div
 									draggable="true"
@@ -358,12 +417,21 @@
 									on:touchmove={handleTouchMove}
 									on:touchend={handleTouchEnd}
 									data-option-id={optionId}
-									class="flex items-start gap-2 sm:gap-4 rounded-xl border-2 border-gray-600 bg-gradient-to-br from-gray-700/50 to-gray-800/50 p-3 sm:p-4 backdrop-blur-sm transition-all hover:border-blue-500 hover:shadow-lg"
+									class="flex items-start gap-2 sm:gap-4 rounded-xl border-2 p-3 sm:p-4 backdrop-blur-sm transition-all hover:shadow-lg {isNewOption ? 'border-yellow-500 bg-gradient-to-br from-yellow-900/40 to-yellow-800/30 hover:border-yellow-400 shadow-yellow-500/20' : 'border-gray-600 bg-gradient-to-br from-gray-700/50 to-gray-800/50 hover:border-blue-500'}"
 									class:opacity-50={draggedItem === optionId && !isDraggingFromHandle}
 									class:scale-105={touchedItem === optionId && isDraggingFromHandle}
-									class:shadow-blue-500={touchedItem === optionId && isDraggingFromHandle}
+									class:shadow-blue-500={touchedItem === optionId && isDraggingFromHandle && !isNewOption}
+									class:shadow-yellow-500={touchedItem === optionId && isDraggingFromHandle && isNewOption}
 								>
 									<div class="flex flex-col gap-1">
+										<button
+											on:click={() => moveToTop(optionId)}
+											disabled={index === 0}
+											class="rounded-lg bg-blue-700 px-2 sm:px-2.5 py-1 text-xs font-semibold text-white transition-all hover:bg-blue-600 disabled:opacity-30 min-w-[28px] sm:min-w-[32px]"
+											title="Move to top"
+										>
+											⤒
+										</button>
 										<button
 											on:click={() => moveUp(optionId)}
 											disabled={index === 0}
@@ -378,6 +446,14 @@
 										>
 											▼
 										</button>
+										<button
+											on:click={() => moveToBottom(optionId)}
+											disabled={index === rankedOptions.length - 1}
+											class="rounded-lg bg-blue-700 px-2 sm:px-2.5 py-1 text-xs font-semibold text-white transition-all hover:bg-blue-600 disabled:opacity-30 min-w-[28px] sm:min-w-[32px]"
+											title="Move to bottom"
+										>
+											⤓
+										</button>
 									</div>
 
 									<div class="flex h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-sm sm:text-base font-bold text-white shadow-lg">
@@ -385,7 +461,14 @@
 									</div>
 
 									<div class="flex-1 min-w-0">
-										<h3 class="text-base sm:text-lg font-semibold text-white break-words">{option.label}</h3>
+										<div class="flex items-start gap-2 flex-wrap mb-1">
+											<h3 class="text-base sm:text-lg font-semibold text-white break-words">{option.label}</h3>
+											{#if isNewOption}
+												<span class="inline-flex items-center gap-1 rounded-full bg-yellow-600 px-2 py-0.5 text-xs font-bold text-white shadow-md animate-pulse">
+													✨ NEW
+												</span>
+											{/if}
+										</div>
 										{#if option.data}
 											<div class="mt-1 space-y-1 text-xs sm:text-sm text-gray-300">
 												{#if option.data.description}

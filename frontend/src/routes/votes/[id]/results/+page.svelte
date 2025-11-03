@@ -193,13 +193,20 @@
 											</div>
 										</div>
 										<div class="text-left sm:text-right flex-shrink-0">
-											<div class="text-xl sm:text-2xl font-bold text-white">{result.voteCount} {result.voteCount === 1 ? 'vote' : 'votes'}</div>
-											<div class="text-sm sm:text-base font-semibold {index === 0 ? 'text-blue-400' : index === 1 ? 'text-purple-400' : index === 2 ? 'text-green-400' : 'text-gray-400'}">
-												{result.percentage.toFixed(1)}%
-											</div>
 											{#if result.averageRank !== undefined && result.averageRank !== null}
+												<!-- Primary metric: Average Rank -->
+												<div class="text-xl sm:text-2xl font-bold {index === 0 ? 'text-blue-400' : index === 1 ? 'text-purple-400' : index === 2 ? 'text-green-400' : 'text-gray-300'}">
+													Avg: {result.averageRank.toFixed(2)}
+												</div>
+												<!-- Secondary metrics: Vote count and percentage -->
 												<div class="mt-1 text-xs text-gray-500">
-													Avg rank: {result.averageRank.toFixed(2)}
+													{result.voteCount} {result.voteCount === 1 ? 'vote' : 'votes'} · {result.percentage.toFixed(1)}%
+												</div>
+											{:else}
+												<!-- Fallback for non-ranking votes -->
+												<div class="text-xl sm:text-2xl font-bold text-white">{result.voteCount} {result.voteCount === 1 ? 'vote' : 'votes'}</div>
+												<div class="text-sm sm:text-base font-semibold {index === 0 ? 'text-blue-400' : index === 1 ? 'text-purple-400' : index === 2 ? 'text-green-400' : 'text-gray-400'}">
+													{result.percentage.toFixed(1)}%
 												</div>
 											{/if}
 										</div>
